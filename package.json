@@ -4,7 +4,6 @@
     "description": "A library for managing plant care with alerts and multi-language support.",
     "main": "comingsoon.js",
     "type": "module",
-
     "dependencies": {
         "@serialport/parser-readline": "^12.0.0",
         "axios": "^1.7.7",
@@ -31,17 +30,17 @@
     ],
     "packageManager": "pnpm@9.7.0",
     "publishConfig": {
-		"access": "public",
-		"registry": "https://registry.npmjs.org/"
-	},
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
+    },
     "homepage": "https://github.com/pigeonposse/smartplant",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/pigeonposse/smartplant"
-	},
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/pigeonposse/smartplant"
+    },
     "funding": {
-    "type": "individual",
-    "url": "https://pigeonposse.com/?popup=donate"
+        "type": "individual",
+        "url": "https://pigeonposse.com/?popup=donate"
     },
     "bugs": {
         "url": "https://github.com/pigeonposse/smartplant/issues",
@@ -49,10 +48,10 @@
     },
     "scripts": {
         "start": "node index.js",
-		"update-version": "changeset && changeset version",
-		"push": "git add . && cz && git push -f origin $@",
-		"push:main": "pnpm push main"
-	},
+        "update-version": "changeset && changeset version",
+        "push": "git add . && cz && git push -f origin $@",
+        "push:main": "pnpm push main"
+    },
     "license": "GPL-3.0",
     "devDependencies": {
         "@backan/builder": "0.0.16",
@@ -83,34 +82,34 @@
         "typescript": "5.6.2",
         "vite": "^5.4.4"
     },
-	"commitlint": {
-		"extends": [
-			"gitmoji"
-		],
-		"rules": {
-			"header-max-length": [
-				0,
-				"always",
-				100
-			]
-		}
-	},
-	"config": {
-		"commitizen": {
-			"path": "./node_modules/cz-customizable"
-		},
-		"cz-customizable": {
-			"config": ".dev/cz-config.cjs"
-		}
-	},
+    "commitlint": {
+        "extends": [
+            "gitmoji"
+        ],
+        "rules": {
+            "header-max-length": [
+                0,
+                "always",
+                100
+            ]
+        }
+    },
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-customizable"
+        },
+        "cz-customizable": {
+            "config": ".dev/cz-config.cjs"
+        }
+    },
     "extra": {
         "scopes": [
             {
                 "name": "lib"
             },
-			{
-				"name": "all"
-			}
+            {
+                "name": "all"
+            }
         ]
     }
 }
