@@ -3,7 +3,7 @@
   "changelog": [
     "@changesets/changelog-github",
     { 
-		"repo": "pigeonposse/personality"
+		"repo": "pigeonposse/smartplant"
 	}
   ],
   "commit": false,

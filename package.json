@@ -106,7 +106,7 @@
     "extra": {
         "scopes": [
             {
-                "name": "core"
+                "name": "lib"
             },
 			{
 				"name": "all"
