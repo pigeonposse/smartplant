@@ -26,7 +26,7 @@ To start using SmartPlant, follow these steps:
 1.  **Import the Library**
     
     ```
-    const SmartPlant = require('smartplant');
+    import SmartPlant  from 'smartplant'
     ```
     
 2.  **Create an Instance and Configure**
