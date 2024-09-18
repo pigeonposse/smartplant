@@ -1,8 +1,8 @@
 {
     "name": "smartplant",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A library for managing plant care with alerts and multi-language support.",
-    "main": "index.js",
+    "main": "comingsoon.js",
     "type": "module",
 
     "dependencies": {
@@ -34,17 +34,17 @@
 		"access": "public",
 		"registry": "https://registry.npmjs.org/"
 	},
-    "homepage": "https://github.com/pigeonposse/personality",
+    "homepage": "https://github.com/pigeonposse/smartplant",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/pigeonposse/personality"
+		"url": "https://github.com/pigeonposse/smartplant"
 	},
     "funding": {
     "type": "individual",
     "url": "https://pigeonposse.com/?popup=donate"
     },
     "bugs": {
-        "url": "https://github.com/pigeonposse/personality/issues",
+        "url": "https://github.com/pigeonposse/smartplant/issues",
         "email": "dev@pigeonposse.com"
     },
     "scripts": {
