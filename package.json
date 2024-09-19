@@ -26,6 +26,7 @@
     ],
     "author": "Alejo Malia <alejomalia@gmail.com>",
     "files": [
+        "./docs/banner.png",
         "./README.md"
     ],
     "packageManager": "pnpm@9.7.0",
