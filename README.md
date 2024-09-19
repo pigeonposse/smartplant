@@ -1,7 +1,7 @@
 
 # SmartPlant
 
-[![HEADER](docs/banner.png)](https://github.com/pigeonposse)
+[![HEADER](https://github.com/pigeonposse/.github/blob/main/docs/banner-smartplant.png?raw=true)](https://github.com/pigeonposse)
 
 
 **SmartPlant** is a pioneering library designed for plant care with AI technology, aimed at integrating automated alerts with multi-language support. This standard prototype library is crafted for intelligent devices that manage plant care, enhancing the level of interaction and intelligence between plants and their owners. The core idea behind SmartPlant is to pave the way for advancements in plant care technology. It serves as a foundation for developing more sophisticated solutions and experimenting with innovative devices that cater to the needs of plants. By leveraging this library, developers can contribute to evolving the ecosystem of smart plant care.
