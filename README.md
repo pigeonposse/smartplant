@@ -18,10 +18,11 @@ The core idea behind SmartPlant is to *pave the way for advancements in plant ca
 - 🤖 **Integrated Artificial Intelligence:** Optimizes the care of each plant.
 - 📊 **Real-Time Monitoring:** Collects humidity, light, and temperature with sensors.
 - 🔔 **Customized Alerts:** Notifications for out-of-range conditions.
-- 🌍 **Multilingual Support:** English, Español, Français, Deutsch, Italiano, Português, Nederlands, Русский, 中文, 日本語.
+- 💬 **Multilingual Support:** English, Español, Français, Deutsch, Italiano, Português, Nederlands, Русский, 中文, 日本語.
 - 🎛 **Easy Setup:** Intuitive process for Raspberry Pi or Arduino.
 - 📈 **Data History:** Environmental trend analysis.
 - 🔮 **Critical Condition Prediction:** Prevents significant changes in plant health.
+- 🌍 **Open-source:** MIT licensed, available for public use and contributions.
 
 ## Installation
 
