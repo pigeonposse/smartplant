@@ -1,5 +1,5 @@
 
-# SmartPlant by *PIGEONPOSSE*
+# Smartplant by *PIGEONPOSSE*
 
 [![HEADER](https://github.com/pigeonposse/.github/blob/main/docs/banner-smartplant.png?raw=true)](https://github.com/pigeonposse)
 
