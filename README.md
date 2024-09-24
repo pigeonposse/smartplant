@@ -1,20 +1,28 @@
 
-# SmartPlant
+# SmartPlant by *PIGEONPOSSE*
 
 [![HEADER](https://github.com/pigeonposse/.github/blob/main/docs/banner-smartplant.png?raw=true)](https://github.com/pigeonposse)
 
 
-**SmartPlant** is a pioneering library designed for plant care with AI technology, aimed at integrating automated alerts with multi-language support. This standard prototype library is crafted for intelligent devices that manage plant care, enhancing the level of interaction and intelligence between plants and their owners. The core idea behind SmartPlant is to pave the way for advancements in plant care technology. It serves as a foundation for developing more sophisticated solutions and experimenting with innovative devices that cater to the needs of plants. By leveraging this library, developers can contribute to evolving the ecosystem of smart plant care.
+**SmartPlant** is a library designed to simplify plant care through *the integration of advanced artificial intelligence models*. This technology not only researches detailed information about each type of plant but also determines the optimal conditions for their care, thereby maximizing their growth and health. Thanks to this functionality, users can efficiently monitor and manage the environment of their plants *using sensors that measure humidity, light, and temperature*.
+
+The core idea behind SmartPlant is to *pave the way for advancements in plant care technology*. It serves as a foundation for developing more sophisticated solutions and experimenting with innovative devices that meet the needs of plants. By leveraging this library, developers can contribute to the evolution of the smart plant care ecosystem.
 
 > [!WARNING]
 > Currently in phase `Beta`
 
+## AI and the future intertwine: connect with your environment.
+
 ## Features
 
-*   Multi-language support
-*   Alerts for plant care (moisture, sunlight, water, soil, temperature)
-*   Local and external input methods
-*   Automatic configuration and notifications
+- 🤖 **Integrated Artificial Intelligence:** Optimizes the care of each plant.
+- 📊 **Real-Time Monitoring:** Collects humidity, light, and temperature with sensors.
+- 🔔 **Customized Alerts:** Notifications for out-of-range conditions.
+- 🌍 **Multilingual Support:** English, Español, Français, Deutsch, Italiano, Português, Nederlands, Русский, 中文, 日本語.
+- 🎛 **Easy Setup:** Intuitive process for Raspberry Pi or Arduino.
+- 📈 **Data History:** Environmental trend analysis.
+- 🔮 **Critical Condition Prediction:** Prevents significant changes in plant health.
+
 
 ## Installation
 
@@ -24,85 +32,42 @@ To install the library, use npm:
 npm install smartplant
 ```
 
-## Usage
+## Emojis scales for parameter monitoring
 
-To start using SmartPlant, follow these steps:
+To make the plant monitoring more intuitive and visually accessible, we have implemented an emojis system that represents different levels of each critical parameter: moisture, light and temperature.Each emoji offers a rapid representation of the current status of the parameter, which facilitates interpretation without analyzing specific numbers.
 
-1.  **Import the Library**
-    
-    ```
-    import SmartPlant  from 'smartplant'
-    ```
-    
-2.  **Create an Instance and Configure**
-    
-    ```
-    
-    const smartPlant = new SmartPlant();
-    
-    // Select language
-    smartPlant.setLanguage('en'); // Options: 'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'zh', 'ja'
-    
-    // Select input method
-    smartPlant.setInputMethod('local'); // Options: 'local', 'extern'
-                
-    ```
-    
-3.  **Configure the Plant**
-    
-    ```
-    
-    smartPlant.setPlantType('indoor'); // Options: 'indoor', 'outdoor'
-    smartPlant.setPlantName('Ficus'); // Replace 'Ficus' with the name of your plant
-    
-    // Configure alerts
-    smartPlant.configureAlerts();
-                
-    ```
-    
-4.  **Start Monitoring**
-    
-    ```
-    smartPlant.startMonitoring();
-    ```
-    
+#### Humidity:
+- 🍂 ** (Very dry): ** Indicates that moisture is below the recommended minimum range.The plant is at risk of dehydration.
+- 🌿 ** (Ideal): ** Moisture is within the ideal range, which means that the plant is in optimal conditions.
+- 💧 ** (slightly wet): ** Indicates that moisture is slightly above the ideal range, but it is not yet worrisome.
+- 🌊 ** (very humid): ** Moisture is above the maximum allowed range, which could lead to saturation and problems such as waterlogging.
 
-## Language Configuration
+#### Light:
+- 🌑 ** (Very little light): ** points out that the plant receives less light than necessary, which could affect its growth.
+- 🌥 ** (Ideal): ** The plant receives the amount of light adequate for healthy development.
+- 🌞 ** (Too much light): ** Light exposure is excessive, which can cause burns or stress in the plant.
 
-You can configure the language as follows:
+#### Temperature:
+- 🧊 ** (Very cold): ** The temperature is below the minimum range, which can slow down or damage the plant.
+- 🌡️ ** (Ideal): ** The temperature is in the optimal range for the growth and development of the plant.
+- 🔥 ** (Very hot): ** The temperature exceeds the maximum range, which could cause overheating and dehydration.
 
-```
-smartPlant.setLanguage('en'); // Change 'en' to the desired language code
-```
+### Emojis-based happiness system
 
-Available languages are:
+In addition to the specific parameters, we have designed a system of general happiness for the plant, which is represented with caritas emojis.This system provides a global vision of the state of the plant, based on a combination of its levels of humidity, light and temperature.
 
-*   en - English
-*   es - Spanish
-*   fr - French
-*   de - German
-*   it - Italian
-*   pt - Portuguese
-*   nl - Dutch
-*   ru - Russian
-*   zh - Chinese
-*   ja - Japanese
+#### Happiness scale:
+- 🤩 ** (Very happy): ** The plant is in ideal conditions in all key parameters.This is the optimal state.
+- 😊 ** (Happy): ** The plant is in good condition, although there could be slight deviations in some parameters.
+- 😐 ** (acceptable): ** The plant is in acceptable conditions, but is far from ideal.Small adjustments may be required.
+- 😞 ** (bad conditions): ** The plant is experiencing unfavorable conditions and needs attention to avoid major damage.
+- 😖 ** (Critical conditions): ** The plant is in a critical state and requires immediate action to prevent its condition will get worse.
+- 🥵 ** (Extremely critical): ** The plant is in an extremely critical state and is in danger of dying if urgent measures are not taken.
 
-## Input Methods
+# Benefits of the emojis system
 
-Choose between:
+This approach with emojis provides a simplified and visually attractive user experience.It allows even those without deep technical knowledge to quickly understand the state of the plant and take the necessary measures.It is a way to offer immediate and clear feedback, improving interaction with the system and promoting more regular and careful maintenance of the plant.
 
-*   **Local**: Detects plants on your computer.
-*   **External**: Uses an external API; requires an API key.
-
-## Alert Messages
-
-\*\*SmartPlant\*\* provides customized messages based on the plant's needs. Here are some examples:
-
-*   **Low Moisture**: "The moisture in my soil is low. I need water!"
-*   **Low Sunlight**: "I am receiving too little sunlight. I need more sun!"
-*   **High Temperature**: "The temperature is too high. Please lower it!"
-*   **Happy**: "I am very happy and healthy!"
 
 ## Contributions
 
