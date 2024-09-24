@@ -1,5 +1,11 @@
 # smartplant
 
+## 0.1.7
+
+### Patch Changes
+
+- change src files, fix issues, ad bin key in pkg.json
+
 ## 0.1.5
 
 ### Patch Changes

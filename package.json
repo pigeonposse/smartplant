@@ -1,119 +1,121 @@
 {
-    "name": "smartplant",
-    "version": "0.1.6",
-    "description": "A library for managing plant care with alerts and multi-language support.",
-    "main": "main.js",
-    "type": "module",
-    "dependencies": {
-        "@serialport/parser-readline": "^12.0.0",
-        "axios": "^1.7.7",
-        "chalk": "^5.3.0",
-        "enquirer": "^2.4.1",
-        "nodemailer": "^6.9.15",
-        "readline": "^1.3.0",
-        "serialport": "^12.0.0"
-    },
-    "keywords": [
-        "plant",
-        "care",
-        "alerts",
-        "multi-language",
-        "smart",
-        "AI",
-        "intelligence",
-        "npm",
-        "library"
-    ],
-    "author": "Alejo Malia <alejomalia@gmail.com>",
-    "files": [
-        "./docs/banner.png",
-        "./README.md"
-    ],
-    "packageManager": "pnpm@9.7.0",
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/"
-    },
-    "homepage": "https://github.com/pigeonposse/smartplant",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/pigeonposse/smartplant"
-    },
-    "funding": {
-        "type": "individual",
-        "url": "https://pigeonposse.com/?popup=donate"
-    },
-    "bugs": {
-        "url": "https://github.com/pigeonposse/smartplant/issues",
-        "email": "dev@pigeonposse.com"
-    },
-    "scripts": {
-        "start": "node main.js",
-        "update-version": "changeset && changeset version",
-        "push": "git add . && cz && git push -f origin $@",
-        "push:main": "pnpm push main"
-    },
-    "license": "GPL-3.0",
-    "devDependencies": {
-        "@backan/builder": "0.0.16",
-        "@changesets/changelog-github": "0.5.0",
-        "@changesets/cli": "2.27.8",
-        "@commitlint/cli": "19.5.0",
-        "@pigeon-posse/eslint-config": "1.0.1",
-        "@typescript-eslint/eslint-plugin": "8.2.0",
-        "@typescript-eslint/parser": "8.2.0",
-        "commitizen": "4.3.0",
-        "commitlint-config-gitmoji": "2.3.1",
-        "cz-customizable": "7.2.1",
-        "cz-emoji": "1.3.2-canary.2",
-        "eslint": "8.57.0",
-        "git-cz": "4.9.0",
-        "eslint-plugin-align-assignments": "1.1.2",
-        "eslint-plugin-align-import": "1.0.0",
-        "eslint-plugin-canonical": "5.0.0",
-        "eslint-plugin-html": "7.1.0",
-        "eslint-plugin-import": "2.29.1",
-        "eslint-plugin-jsdoc": "46.10.1",
-        "eslint-plugin-json": "3.1.0",
-        "eslint-plugin-jsonc": "2.13.0",
-        "eslint-plugin-markdownlint": "0.5.0",
-        "eslint-plugin-package-json": "0.12.2",
-        "eslint-plugin-promise": "6.1.1",
-        "eslint-plugin-yaml": "0.5.0",
-        "typescript": "5.6.2",
-        "vite": "^5.4.4"
-    },
-    "commitlint": {
-        "extends": [
-            "gitmoji"
-        ],
-        "rules": {
-            "header-max-length": [
-                0,
-                "always",
-                100
-            ]
-        }
-    },
-    "config": {
-        "commitizen": {
-            "path": "./node_modules/cz-customizable"
-        },
-        "cz-customizable": {
-            "config": ".dev/cz-config.cjs"
-        }
-    },
-    "extra": {
-        "scopes": [
-            {
-                "name": "lib"
-            },
-            {
-                "name": "env"
-            },
-            {
-                "name": "all"
-            }
-        ]
-    }
+	"name": "smartplant",
+	"version": "0.1.7",
+	"description": "A library for managing plant care with alerts and multi-language support.",
+	"main": "src/main.js",
+	"bin": {
+		"smartplant": "src/cli.js"
+	},
+	"type": "module",
+	"dependencies": {
+		"@serialport/parser-readline": "12.0.0",
+		"chalk": "5.3.0",
+		"enquirer": "2.4.1",
+		"serialport": "12.0.0"
+	},
+	"keywords": [
+		"plant",
+		"care",
+		"alerts",
+		"multi-language",
+		"smart",
+		"AI",
+		"intelligence",
+		"npm",
+		"library"
+	],
+	"author": "Alejo Malia <alejomalia@gmail.com>",
+	"files": [
+		"./src"
+	],
+	"packageManager": "pnpm@9.7.0",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"homepage": "https://github.com/pigeonposse/smartplant",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pigeonposse/smartplant"
+	},
+	"funding": {
+		"type": "individual",
+		"url": "https://pigeonposse.com/?popup=donate"
+	},
+	"bugs": {
+		"url": "https://github.com/pigeonposse/smartplant/issues",
+		"email": "dev@pigeonposse.com"
+	},
+	"scripts": {
+		"dev": "node src/cli.js",
+		"build": "pnpm run --sequential \"/build:.*/\"",
+		"build:bins": "rsbuild build -c .dev/build-lib.mjs && node .dev/build-bin.mjs",
+		"update-version": "changeset && changeset version",
+		"push": "git add . && cz && git push -f origin $@",
+		"push:main": "pnpm push main"
+	},
+	"license": "GPL-3.0",
+	"devDependencies": {
+		"@backan/builder": "0.0.16",
+		"@changesets/changelog-github": "0.5.0",
+		"@changesets/cli": "2.27.8",
+		"@commitlint/cli": "19.5.0",
+		"@pigeon-posse/eslint-config": "1.0.1",
+		"@rsbuild/core": "^1.0.6",
+		"@typescript-eslint/eslint-plugin": "8.2.0",
+		"@typescript-eslint/parser": "8.2.0",
+		"commitizen": "4.3.0",
+		"commitlint-config-gitmoji": "2.3.1",
+		"cz-customizable": "7.2.1",
+		"cz-emoji": "1.3.2-canary.2",
+		"eslint": "8.57.0",
+		"eslint-plugin-align-assignments": "1.1.2",
+		"eslint-plugin-align-import": "1.0.0",
+		"eslint-plugin-canonical": "5.0.0",
+		"eslint-plugin-html": "7.1.0",
+		"eslint-plugin-import": "2.29.1",
+		"eslint-plugin-jsdoc": "46.10.1",
+		"eslint-plugin-json": "3.1.0",
+		"eslint-plugin-jsonc": "2.13.0",
+		"eslint-plugin-markdownlint": "0.5.0",
+		"eslint-plugin-package-json": "0.12.2",
+		"eslint-plugin-promise": "6.1.1",
+		"eslint-plugin-yaml": "0.5.0",
+		"git-cz": "4.9.0",
+		"typescript": "5.6.2",
+		"vite": "5.4.4"
+	},
+	"commitlint": {
+		"extends": [
+			"gitmoji"
+		],
+		"rules": {
+			"header-max-length": [
+				0,
+				"always",
+				100
+			]
+		}
+	},
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-customizable"
+		},
+		"cz-customizable": {
+			"config": ".dev/cz-config.cjs"
+		}
+	},
+	"extra": {
+		"scopes": [
+			{
+				"name": "lib"
+			},
+			{
+				"name": "env"
+			},
+			{
+				"name": "all"
+			}
+		]
+	}
 }
