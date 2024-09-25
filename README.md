@@ -3,7 +3,6 @@
 
 [![HEADER](https://github.com/pigeonposse/.github/blob/main/docs/banner-smartplant.png?raw=true)](https://github.com/pigeonposse)
 
-
 **Smartplant** is a library designed to simplify plant care through *the integration of advanced artificial intelligence models*. This technology not only researches detailed information about each type of plant but also determines the optimal conditions for their care, thereby maximizing their growth and health. Thanks to this functionality, users can efficiently monitor and manage the environment of their plants *using sensors that measure humidity, light, and temperature*.
 
 The core idea behind SmartPlant is to *pave the way for advancements in plant care technology*. It serves as a foundation for developing more sophisticated solutions and experimenting with innovative devices that meet the needs of plants. By leveraging this library, developers can contribute to the evolution of the smart plant care ecosystem.
@@ -11,7 +10,7 @@ The core idea behind SmartPlant is to *pave the way for advancements in plant ca
 > [!WARNING]
 > Currently in phase `Beta`
 
-## AI and the future intertwine: connect with your environment.
+## AI and the future intertwine: connect with your environment
 
 ## Features
 
@@ -28,8 +27,8 @@ The core idea behind SmartPlant is to *pave the way for advancements in plant ca
 
 To install the library, use npm:
 
-```
-npm install smartplant
+```bash
+npm install -g smartplant
 ```
 
 # Benefits of the emojis system
@@ -40,18 +39,21 @@ This approach with emojis provides a simplified and visually attractive user exp
 
 To make the plant monitoring more intuitive and visually accessible, we have implemented an emojis system that represents different levels of each critical parameter: moisture, light and temperature.Each emoji offers a rapid representation of the current status of the parameter, which facilitates interpretation without analyzing specific numbers.
 
-#### Humidity:
+### Humidity
+
 - 🍂 **Very dry:** Indicates that moisture is below the recommended minimum range.The plant is at risk of dehydration.
 - 🌿 **Ideal:** Moisture is within the ideal range, which means that the plant is in optimal conditions.
 - 💧 **Slightly wet:** Indicates that moisture is slightly above the ideal range, but it is not yet worrisome.
 - 🌊 **Very humid:** Moisture is above the maximum allowed range, which could lead to saturation and problems such as waterlogging.
 
-#### Light:
+### Light
+
 - 🌑 **Very little light:** points out that the plant receives less light than necessary, which could affect its growth.
 - 🌥 **Ideal:** The plant receives the amount of light adequate for healthy development.
 - 🌞 **Too much light:** Light exposure is excessive, which can cause burns or stress in the plant.
 
-#### Temperature:
+### Temperature
+
 - 🧊 **Very cold:** The temperature is below the minimum range, which can slow down or damage the plant.
 - 🌡️ **Ideal:** The temperature is in the optimal range for the growth and development of the plant.
 - 🔥 **Very hot:** The temperature exceeds the maximum range, which could cause overheating and dehydration.
@@ -60,7 +62,8 @@ To make the plant monitoring more intuitive and visually accessible, we have imp
 
 In addition to the specific parameters, we have designed a system of general happiness for the plant, which is represented with caritas emojis.This system provides a global vision of the state of the plant, based on a combination of its levels of humidity, light and temperature.
 
-#### Happiness scale:
+#### Happiness scale
+
 - 🤩 **Very happy:** The plant is in ideal conditions in all key parameters.This is the optimal state.
 - 😊 **Happy:** The plant is in good condition, although there could be slight deviations in some parameters.
 - 😐 **Acceptable:** The plant is in acceptable conditions, but is far from ideal.Small adjustments may be required.
