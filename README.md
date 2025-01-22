@@ -1,7 +1,7 @@
 
 # Smartplant by *PIGEONPOSSE*
 
-[![HEADER](https://github.com/pigeonposse/.github/blob/main/docs/banner-smartplant.png?raw=true)](https://github.com/pigeonposse)
+[![HEADER](https://github.com/pigeonposse/smartplant/blob/main/docs/banner.png?raw=true)](https://github.com/pigeonposse)
 
 **Smartplant** is a library designed to simplify plant care through *the integration of advanced artificial intelligence models*. This technology not only researches detailed information about each type of plant but also determines the optimal conditions for their care, thereby maximizing their growth and health. Thanks to this functionality, users can efficiently monitor and manage the environment of their plants *using sensors that measure humidity, light, and temperature*.
 
