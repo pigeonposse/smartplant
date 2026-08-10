@@ -1,0 +1,38 @@
+{
+  "name": "@smartplant/watering",
+  "version": "3.0.0",
+  "description": "Predicts watering needs from soil moisture, trends and care history.",
+  "main": "index.js",
+  "peerDependencies": {
+    "smartplant": "workspace:^"
+  },
+  "devDependencies": {
+    "smartplant": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "node --test test.js"
+  },
+  "keywords": [
+    "plant",
+    "smartplant",
+    "smartplant-plugin",
+    "AI",
+    "watering"
+  ]
+}

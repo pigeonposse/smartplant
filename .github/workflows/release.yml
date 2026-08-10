@@ -1,0 +1,121 @@
+###############################################################################
+# RELEASE 
+###############################################################################
+
+name: 🚀 Release packages
+
+on:
+#   push:
+#     branches:
+#       - main
+  workflow_dispatch:
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN_ALEJO }}
+permissions:
+  contents: write # to create release (changesets/action)
+  pull-requests: write # to create pull request (changesets/action)
+  issues: write # to post issue comments (changesets/action
+  id-token: write # to use OpenID Connect token for provenance (changesets/action)
+
+###############################################################################
+# JOBS
+###############################################################################
+
+jobs:
+  
+  release-lib:
+
+    name: 🚀 Release
+    runs-on: macos-latest
+    timeout-minutes: 10
+
+    steps:
+
+      #########################################################################
+      # INIT & INSTALL
+      #########################################################################
+
+      - name: ⬇️🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.12.1
+      - name: ⬇️🛎 Checkout
+        uses: actions/checkout@v4
+      - name: ⬇️🥡 Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: ⬇️🟢 Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: 🐙😺 Check GitHub API Rate Limit
+        id: rate_limit
+        run: |
+          response=$(gh api rate_limit)
+          limit=$(echo $response | jq -r '.resources.core.limit')
+          remaining=$(echo $response | jq -r '.resources.core.remaining')
+          echo "GitHub API Rate Limit: $remaining/$limit"
+
+          if [ "$remaining" -lt 10 ]; then
+              exit 1
+          fi
+        env:
+            GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: ⬇️📦 Install dependencies
+        run: pnpm install --no-frozen-lockfile --ignore-scripts
+
+
+      #########################################################################
+      # BUILD
+      #########################################################################
+
+      - name: 🏗 Build
+        run: |
+          pnpm build:bins
+
+      #########################################################################
+      # PUBLISH
+      #########################################################################
+
+      - name: 📣 Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          title: "chore(release): version packages 🦋"
+          publish: pnpm exec changeset publish
+          version: pnpm exec changeset version
+          commit: "chore(release): version packages 🦋 [skip ci]"
+          createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ env.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+
+      - name: Get updated versions if exists
+        id: updated
+        run: |
+          core_version=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r 'map(select(.name == "smartplant")) | .[0].version // empty' )
+          core_version_major=${core_version%%.*}
+          echo Set changesets outputs
+          echo '${{ steps.changesets.outputs }}'
+          echo Set updated versions
+          echo "CORE=$core_version CORE_MAJOR=$core_version_major"
+          echo "core_version=$core_version" >> $GITHUB_OUTPUT
+
+      - name: Release binary 
+        if: ${{ steps.updated.outputs.core_version != '' }}
+        uses: ncipollo/release-action@v1
+        with: 
+          tag: "v${{ steps.updated.outputs.core_version }}"
+          draft: false
+          prerelease: false
+          allowUpdates: true
+          artifacts: "build/zip/*"
+          omitBodyDuringUpdate: true
+
+
+###############################################################################
