@@ -1,6 +1,6 @@
 {
   "name": "@smartplant/pests",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Pest risk from environmental conditions, plus identification from symptoms.",
   "main": "index.js",
   "peerDependencies": {

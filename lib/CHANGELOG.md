@@ -1,5 +1,55 @@
 # smartplant
 
+## 3.0.1
+
+### Minor Changes
+
+- **OpenClaw as the plant's brain, not a messaging bridge.** `OpenClawBrain` hands
+  the model the plant's whole control surface — 12 reading tools and 7 acting
+  ones — and lets it decide what to look at and what to do. `plant.useBrain()`
+  attaches it and switches the plant's ordinary AI to the Gateway at the same
+  time, so SmartPlant needs no API key and no Ollama install.
+
+  The brain never acts directly. Every acting tool passes three gates: the
+  evidence ledger, an optional human confirmation hook, and the subsystem itself.
+  A refusal comes back as a tool result with its reasons rather than an
+  exception, so the model reasons about the constraint inside the run. The brain
+  decides *whether*; the subsystem decides *how much*.
+
+  Also: `openclawEmbedder()` so semantic memory works through the Gateway with no
+  key, `brain.supervise()` for standing watch, `brain.stats()` reporting which
+  gate stopped what, and `smartplant brain "<goal>"`.
+
+- **Spectral probing: light as a diagnostic instrument.** 🔵 blue reads stomatal
+  competence (hydration), 🔴 red reads Photosystem II (photosynthetic capacity),
+  🟢 green penetrates to the deep mesophyll. Blue weak with red strong is water
+  stress; blue strong with red weak is nutrient deficiency — a distinction no
+  single passive electrode can make.
+
+  Measurement follows the LIRB method: a periodic light/dark carrier, with the
+  plant's state appearing as modulation. Phase locking with an SNR against the
+  noise floor, cycle folding that averages noise down as 1/√N, harmonic
+  distortion as an early marker of ionic imbalance, all relative to an 🟠 amber
+  control channel.
+
+  Timescales are enforced: stomatal opening takes 5-30 minutes, so the blue probe
+  runs on a 16-minute period. A probe faster than its pathway is refused with an
+  explanation rather than returning a confident-looking zero.
+
+  Treatment is gated by arithmetic. Blue is refused on dry soil — the plant
+  closed its stomata via ABA to conserve water, and forcing them open accelerates
+  dehydration. Missing data blocks rather than permits. UV-B and far-red need
+  explicit human authorization.
+
+### Patch Changes
+
+- OpenClaw Gateway defaults corrected against its documentation: port **18789**
+  (was 4747), auth variable `OPENCLAW_GATEWAY_TOKEN`, and auth required by
+  default with an error that says so. Added `/v1/models` and `/v1/embeddings`.
+- A `GET` request no longer carries a `body` key.
+- `smartplant/integrations/openclaw` is now a directory module; the import path
+  is unchanged.
+
 ## 3.0.0
 
 ### Major Changes

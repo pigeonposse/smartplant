@@ -1,5 +1,12 @@
 # @smartplant/stress
 
+## 3.0.1
+
+### Patch Changes
+
+- Updated dependencies:
+  - smartplant@3.0.1
+
 ## 3.0.0
 
 ### Major Changes

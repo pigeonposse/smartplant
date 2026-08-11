@@ -1,0 +1,47 @@
+{
+  "name": "@smartplant/spectrum",
+  "version": "3.0.1",
+  "description": "Probes the plant with specific wavelengths and reads the electrical response of each photoreceptor pathway.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js"
+  ],
+  "peerDependencies": {
+    "smartplant": "workspace:^"
+  },
+  "devDependencies": {
+    "smartplant": "workspace:*"
+  },
+  "scripts": {
+    "test": "node --test test.js"
+  },
+  "keywords": [
+    "plant",
+    "smartplant",
+    "smartplant-plugin",
+    "AI",
+    "spectrum",
+    "led",
+    "photobiology",
+    "electrophysiology"
+  ],
+  "author": "Alejo Malia <alejomalia@gmail.com>",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "homepage": "https://github.com/pigeonposse/smartplant",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pigeonposse/smartplant"
+  },
+  "license": "MIT"
+}

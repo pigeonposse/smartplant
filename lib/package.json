@@ -1,6 +1,6 @@
 {
 	"name": "smartplant",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "A bridge between AI and plants: pluggable sensors, persistent plant memory, multi-provider AI and a first-person plant voice.",
 	"main": "src/index.js",
 	"module": "src/index.js",
@@ -27,7 +27,8 @@
 		"./confidence": "./src/confidence/index.js",
 		"./personalization": "./src/personalization/index.js",
 		"./hardware": "./src/hardware/index.js",
-		"./integrations/openclaw": "./src/integrations/openclaw.js"
+		"./integrations/openclaw": "./src/integrations/openclaw/index.js",
+		"./spectral": "./src/spectral/index.js"
 	},
 	"bin": {
 		"smartplant": "src/cli.js"

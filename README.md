@@ -49,23 +49,25 @@ Then it goes further than a monitor:
 - 🧬 It reads the plant's **own electrical signals** — and can tell "something touched me" from "something is damaging me"
 - 🧠 It reasons **symbolically**, so every conclusion carries the readings that produced it
 - 🦿 It can be given a **body** that moves the plant, under limits no model can talk past — see [Symbiosis](#symbiosis)
-- 🦞 It can live in your **messaging apps** through [OpenClaw](#-openclaw), so you text your plant from WhatsApp
+- 🔬 It **interrogates** the plant with 🔵🟢🔴 light, separating thirst from malnutrition — see [Spectral](#-spectral-light-as-an-instrument)
+- 🦞 It can be **run by an agent** through [OpenClaw](#-openclaw-the-plants-brain) — AI with no API key, gated by the safety layers
 
 ---
 
 ## Contents
 
-- [The eight layers](#the-eight-layers) · [Requirements](#requirements)
+- [The nine layers](#the-nine-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [Federated learning](#-federated-learning)
 - **[Symbiosis](#symbiosis)** — [Fusion](#-multirate-fusion) · [Evidence](#-evidence) · [Safety](#-safety) · [Control](#-hierarchical-control) · [Personalization](#-personalization)
-- **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw)** — talk to your plant from WhatsApp, Telegram or Slack
+- **[🔬 Spectral](#-spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
+- **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
 - [CLI](#-cli) · [Emoji scales](#-emoji-scales) · [Full API surface](#full-api-surface) · [Migrating from 1.x](#migrating-from-1x)
 
 ---
 
-## The eight layers
+## The nine layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -77,6 +79,7 @@ Then it goes further than a monitor:
 | 🤖 **AI** | Seven providers, structured output, offline fallback | Your model, your keys, your privacy |
 | 🗣 **Voice** | Five first-person personas, emoji scales, ten languages | It talks to you, it doesn't report at you |
 | 🦿 **Body** | Multirate fusion, reflexes, safety limits, personalization | Autonomy that cannot kill the plant — see [Symbiosis](#symbiosis) |
+| 🔬 **Spectral** | 🔵🟢🔴 LED as a probe, not illumination | The plant is *interrogated*, not just listened to |
 
 Every layer works alone. They compose.
 
@@ -131,6 +134,7 @@ Several drivers can run at once; readings merge, with earlier drivers winning on
 | Claude | `ANTHROPIC_API_KEY` | |
 | Grok | `XAI_API_KEY` | |
 | **Ollama** | none | Runs entirely on your machine — nothing leaves it |
+| **OpenClaw** | none | A local Gateway supplies the model, the key *and* the embeddings — see [OpenClaw](#-openclaw-the-plants-brain) |
 | **Mock** | none | Deterministic and offline, so the whole library is testable |
 
 Retries with exponential backoff on transient failures, a response cache so ten plugins reacting to one sensor tick don't fire ten paid requests, and **structured output with schema coercion** — plugins receive objects with guaranteed keys, never prose to regex.
@@ -189,7 +193,7 @@ plant.on( 'plant:thirsty', async e => {
 } )
 ```
 
-`sensor:reading` · `sensor:error` · `plant:thirsty` · `plant:drowning` · `plant:too-hot` · `plant:too-cold` · `plant:too-dark` · `plant:too-bright` · `plant:stressed` · `plant:happy` · `plant:damaged` · `plant:spoke` · `vision:analysis` · `electro:analysis` · `alert` · `plugin:loaded` · `ai:request` · `ai:response` · `error`
+`sensor:reading` · `sensor:error` · `plant:thirsty` · `plant:drowning` · `plant:too-hot` · `plant:too-cold` · `plant:too-dark` · `plant:too-bright` · `plant:stressed` · `plant:happy` · `plant:damaged` · `plant:spoke` · `vision:analysis` · `electro:analysis` · `spectral:sweep` · `alert` · `plugin:loaded` · `ai:request` · `ai:response` · `error`
 
 Listeners may be async — `emit` awaits them. One listener throwing never stops the others or the monitoring loop, and an action taken inside a listener cannot feed back into the event that triggered it.
 
@@ -338,7 +342,7 @@ A dependency-free hashing embedder and a flat index, so a plant on a Raspberry P
 
 ## 🔌 Plugins
 
-Ten official plugins, each installable on any plant:
+Eleven official plugins, each installable on any plant:
 
 ```js
 import watering from '@smartplant/watering'
@@ -359,6 +363,7 @@ const { advice, daysUntilWater } = await plant.plugin( 'watering' ).predictWater
 | 🌱 `@smartplant/fertilizer` | `guideFertilization()` | Errs toward underfeeding — burn is harder to undo than deficiency |
 | 📔 `@smartplant/diary` | `logAndSummarize()` | The plant writes its own journal, stored in memory |
 | 🔮 `@smartplant/simulator` | `simulateConditions()` | `score()`, `sweep()` — find where tolerance breaks, instantly |
+| 🔬 `@smartplant/spectrum` | `diagnose()` | `probe()`, `treat()`, `doses()` — 🔵🟢🔴 interrogation with hard interlocks |
 
 Writing your own takes one function:
 
@@ -638,6 +643,148 @@ Reward is asymmetric: **harm counts double**. A system that experiments on a liv
 
 ---
 
+---
+
+# 🔬 Spectral: light as an instrument
+
+Every other layer in this library **listens**. This one **asks**.
+
+The central problem in plant electrophysiology is *equifinality*: different causes produce the same waveform. A thirsty plant and a malnourished one can look identical on a single electrode, and no amount of passive sensing separates them.
+
+So stop waiting for the plant to volunteer an ambiguous signal. **Excite one photoreceptor pathway at a time and read what comes back.** Blue reaches the guard cells, red reaches Photosystem II, green reaches the tissue neither of them touches — and the *pattern across colours* is diagnostic in a way no single channel can be.
+
+```js
+await plant.useSpectral( { light : { driver : 'mock' } } )   // or serial / mqtt / callback
+
+const sweep = await plant.interrogate()
+console.log( sweep.summary )
+```
+
+```
+🟠 Amber  (590nm) → baseline: control channel
+🔵 Blue   (450nm) → stomatal_response: weak (1.6× control, SNR 6.2)
+   Blunted or delayed response: ABA is holding the stomata shut, which means water stress.
+🔴 Red    (660nm) → photosynthetic_response: strong (5.1× control, SNR 21.4)
+   Electron transport is efficient; the photosynthetic apparatus is intact.
+
+Cross-band diagnosis:
+  water stress (80%)
+    · blue probe blunted (amplitude 2, 1.6× control) — stomata are not opening
+    · red probe normal (10) — the photosynthetic apparatus is intact
+```
+
+## What each colour does to a plant
+
+| | Band | Photoreceptor | 🔍 As a **probe**, it reads | 💊 As a **treatment**, it does | Risk |
+| --- | --- | --- | --- | --- | --- |
+| 🟣 | **UV-B** 300nm | UVR8 | *never probed — DNA-damaging* | Flavonoid synthesis, thicker cuticle, pathogen resistance | 🔴 critical |
+| 🟪 | **UV-A** 380nm | Cryptochrome, phototropin | Cryptochrome response | Compacts leaf expansion, raises pigment density | 🟡 medium |
+| 🔵 | **Blue** 450nm | Phototropin, cryptochrome | **Stomatal competence → hydration & turgor** | Forces stomata open, raising transpiration | 🟠 high |
+| 🟢 | **Green** 530nm | Weakly absorbed → penetrates | **Deep mesophyll → the lower canopy** | Lights inner canopy nothing else reaches | 🟢 low |
+| 🟠 | **Amber** 590nm | Minimal | **The control channel** — what "no stimulus" looks like | Working light for the camera, minimal perturbation | 🟢 low |
+| 🔴 | **Red** 660nm | Chlorophyll a/b, Photosystem II | **Electron transport → photosynthetic capacity** | Drives ATP/NADPH synthesis and carbon fixation | 🟡 medium |
+| 🟥 | **Far-red** 730nm | Phytochrome (Pfr→Pr) | Phytochrome state | Stem elongation, end-of-day signal, flowering | 🟠 high |
+| ⬛ | **NIR** 940nm | *none — thermal only* | *never probed — no receptor* | Radiant warming without photosynthesis | 🟠 high |
+
+## The diagnostic that needs two colours
+
+This is the whole point:
+
+| Blue probe | Red probe | Conclusion |
+| --- | --- | --- |
+| 🔵 weak | 🔴 strong | **Water stress.** Stomata shut while photosynthesis is fine — that is ABA-mediated closure, not damage. |
+| 🔵 strong | 🔴 weak | **Nutrient deficiency.** Water is adequate but electron transport is impaired: N, Mg, Fe, or photosystem damage. |
+| 🔵 weak | 🔴 weak | **Severe stress — or a bad electrode.** The system says so rather than guessing. |
+| 🔵 strong | 🔴 strong | No cross-band pattern. The pathways agree. |
+
+Add 🟢 green and you also see the lower canopy: a healthy top with a quiet interior means self-shading or senescing lower leaves.
+
+Waveform *distortion* with amplitude preserved — a harmonic ratio above 0.5 — flags **ionic imbalance** (often salinity) before any visible symptom.
+
+## Minutes, not milliseconds
+
+The single fact that decides whether any of this works:
+
+> **Stomatal opening takes 5 to 30 minutes.**
+
+So the blue probe runs on a **16-minute period**, not a flicker. A probe faster than its pathway measures the noise floor and returns a confident-looking zero — which is worse than an error, because you would believe it.
+
+The system refuses rather than letting that happen quietly:
+
+```js
+await plant.spectral.probe( 'blue', { periodMinutes : 0.008 } )   // 2 Hz
+// Error: A 0.008min period gives a 0.0min pulse, but the blue pathway needs
+//        at least 5min to respond. The probe would read noise, not the plant.
+```
+
+Each band carries the period its own physiology allows: 🔴 red 8min · 🟠 amber 10min · 🟪 UV-A 12min · 🔵 blue 16min · 🟢 green 20min · 🟥 far-red 30min.
+
+## How the measurement works
+
+Drive the plant with a periodic light/dark cycle and the surface potential locks to that period, forming a carrier. The plant's internal state then appears as **modulation of that carrier** — which is far easier to detect than a transient you have to catch.
+
+- **Phase locking** — power concentrated at the stimulus frequency, with an SNR against the surrounding noise floor. This is what separates a real evoked response from drift that happened to coincide.
+- **Cycle folding** — every cycle averaged onto one. Uncorrelated noise falls as 1/√N while the locked response survives, so twelve cycles recover a signal buried under twice its own amplitude in noise.
+- **Harmonic content** — distortion rises when a pathway saturates or is stressed, carrying information the fundamental alone does not.
+- **Everything relative to the 🟠 amber control**, because absolute millivolts depend on electrode placement and contact impedance and are not comparable across sessions, let alone across plants.
+
+## Safety: the interlocks
+
+Light is the one actuator here that can damage a plant *while looking like care*. A pump that overruns floods visibly; a lamp that forces stomata open on a drought-stressed plant kills it quietly while the log says "treatment applied".
+
+So treatment is decided by arithmetic, never by a model's confidence:
+
+```js
+await plant.spectral.treat( 'blue', { seconds : 300, context : plant.context() } )
+// REFUSED: The plant closed its stomata to conserve water. Forcing them open
+//          with blue light overrides that defence and accelerates dehydration.
+```
+
+| Interlock | Rule |
+| --- | --- |
+| 🔵 **Blue on dry soil** | **Hard refusal.** Soil under 30%, humidity under 25%, or over 32°C. The plant closed its stomata to survive. |
+| **Missing data** | **Blocks.** `undefined < 30` is false, so an absent soil sensor must never silently *permit* the treatment that most needs it. |
+| 🟣 **UV-B** | Explicit human authorization, 15 min/day, capped intensity. Eye and skin hazard — the warning says so. |
+| 🟥 **Far-red** | Blocked by default. It induces shade-avoidance elongation, which weakens an indoor plant. |
+| **Dose budgets** | Per band, per day, reset at midnight. Authorizations expire with the day too. |
+| **Dark period** | Protected. The circadian rhythm is a health signal the rest of the library reads; irradiating through the night destroys it. |
+
+Probes are held to the dose budget but **not** to the treatment interlocks: a four-minute blue pulse reads the stomata, it does not force them.
+
+## Hardware
+
+Any multi-channel LED works. The driver's only job is to emit channel intensities and report honestly what it actually did.
+
+```js
+await plant.useSpectral( {
+  light : { driver : 'serial', path : '/dev/ttyUSB0' },   // an ESP32 driving LED channels
+} )
+```
+
+| Driver | For |
+| --- | --- |
+| `mock` | No hardware — the whole stack is testable and demonstrable |
+| `serial` | ESP32 / Arduino, one JSON line per command |
+| `mqtt` | ESPHome, Tasmota, Zigbee2MQTT |
+| `callback` | Philips Hue, DMX, WLED, GPIO PWM — anything with its own SDK |
+
+A fixture declares which bands it has; requesting a channel it lacks is an error, not a silent no-op. Calibrated fixtures can declare `irradiance` per channel and the dose ledger will use photon flux; without calibration the system tracks **time** rather than pretending to know µmol·m⁻²·s⁻¹.
+
+## Feeding the rest of the system
+
+Spectral findings enter the [evidence ledger](#-evidence) as an **independent source**, because they come from controlled excitation rather than from the same passive channel everything else reads. That is what lets a high-risk action clear its corroboration requirement honestly:
+
+```js
+await plant.embody()
+await plant.interrogate()
+
+plant.justifies( 'water_stress', RISK.HIGH )
+// now backed by soil, vision *and* spectral — three independent sources
+```
+
+Full example: [`lib/examples/06-spectral-probe.js`](lib/examples/06-spectral-probe.js), and the [`@smartplant/spectrum`](#-plugins) plugin wraps all of it.
+
+
 # Hardware
 
 ## 🔎 Hardware autodetection
@@ -663,157 +810,182 @@ Suggested: sensor "serial" (confidence 0.9)
 
 Identifies the board from the device tree, serial devices by USB vendor id, I2C sensors by address, and which optional packages are installed — then recommends a config and a firmware target with its reasoning and a confidence. Read-only throughout: it lists and reads, never writes or disturbs a bus.
 
-# 🦞 OpenClaw
+# 🦞 OpenClaw: the plant's brain
 
-[OpenClaw](https://github.com/openclaw/openclaw) is a local personal-AI assistant: a Gateway that holds sessions, tools and connections to the messaging channels you already use — WhatsApp, Telegram, Slack, Discord, and others.
+[OpenClaw](https://github.com/openclaw/openclaw) runs a local Gateway that holds your models, your keys and your routing, and speaks OpenAI-compatible HTTP on port `18789`.
 
-SmartPlant integrates with it in both directions.
+For SmartPlant that is **the third way to have AI** — and the only one that costs you nothing to set up:
 
-## What you get
-
-Without OpenClaw, talking to your plant means opening a terminal and typing `smartplant ask`. With it:
-
-| You get | Meaning |
+| | Needs |
 | --- | --- |
-| 💬 **Your plant in your messaging app** | Text Rosa from WhatsApp on the train. She answers with the actual soil reading, not a guess. |
-| 🔔 **It reaches you first** | `plant:thirsty` or `plant:damaged` can push a message instead of sitting in a log nobody reads. |
-| 🧠 **One assistant, one set of keys** | The plant reasons through the models your Gateway already has. No second API key, no second bill. |
-| 👨‍👩‍👧 **Everyone in the house can ask** | Anyone on the channel can check on the plant. No install, no CLI, no explaining what a terminal is. |
-| 🛠 **The assistant can help you build it** | `plant_hardware` lets you ask "what sensors can you see?" and get a real answer from the machine the plant lives on. |
+| Cloud provider | An API key, and a bill |
+| Ollama | A local model install and the disk for it |
+| **OpenClaw** | **Neither.** The Gateway you already run supplies the model, the key and the embeddings. |
 
-The point is not novelty. A plant care system only works if you actually read what it tells you, and you already read your messages.
+But it goes further than being a model source. Because the Gateway does tool calling, OpenClaw can be the **brain**: it gets the plant's entire control surface and decides for itself what to look at and what to do.
 
-## An honest limit first
+```js
+const brain = await plant.useBrain()
 
-OpenClaw is **not** a board or firmware framework, and it does not run on a microcontroller. It is a Node application: it runs on a laptop, a server, or a Raspberry Pi — **not on an Arduino or an ESP32**.
-
-That is fine, because it is not the layer that talks to hardware. The usual shape is:
-
-```
-  ESP32 / Arduino  ──serial/MQTT──▶  Raspberry Pi  ──▶  you, on WhatsApp
-  (sensors, firmware)                (SmartPlant +
-                                      OpenClaw Gateway)
+await brain.run( 'Check on the plant and fix anything that needs fixing.' )
 ```
 
-The microcontroller senses. SmartPlant thinks. OpenClaw carries the conversation. If you want firmware for the first box, see [Firmware generation](#-firmware-generation); if you are not sure what hardware you have, run [`smartplant hardware`](#-hardware-autodetection).
+```
+  → plant_status           ok
+  → plant_diagnose         ok
+  → plant_spectral_scan    ok
+  → plant_water            REFUSED (evidence)
 
-## 1. Your plant as an OpenClaw plugin
+reply: My soil is at 6% and I can feel it, but you have only just started
+       watching me — give it half an hour and check again before pouring.
+```
+
+That refusal is the design working, not failing.
+
+## The brain proposes. The safety layers dispose.
+
+An LLM with a water pump is exactly the situation the [safety layers](#-safety) were built for. So the brain never acts directly — every acting tool passes three gates:
+
+| Gate | Asks |
+| --- | --- |
+| **Evidence** | Is there enough independent corroboration, held long enough, for an action this hard to undo? |
+| **Human** | Optional `confirm` hook — a person can veto any acting tool. |
+| **Subsystem** | The safety supervisor caps the amount, the spectral interlocks refuse the wavelength, the geofence refuses the destination. |
+
+A refusal is **fed back to the model as a tool result**, not thrown. The brain learns inside the run why it cannot do the thing and reasons about what else to try:
+
+```json
+{
+  "ok": false,
+  "refused": "Not enough independent evidence for this action yet.",
+  "missing": [ "only 1 independent source(s), needs 2",
+               "condition has held 0min, needs 30min" ],
+  "advice": "Gather more evidence with other tools, or explain to the human what is missing. Do not retry this call."
+}
+```
+
+And when it *is* justified, the subsystem still decides the magnitude:
+
+```
+It asked for 3000ml. The supervisor gave it 500ml.
+The brain decides *whether*. The supervisor decides *how much*.
+```
+
+## The control surface
+
+**12 reading tools** — always free:
+
+`plant_status` · `plant_ask` · `plant_history` · `plant_diagnose` · `plant_recall` · `plant_explain` · `plant_electro` · `plant_vision` · `plant_spectral_scan` · `plant_body_state` · `plant_check_evidence` · `plant_hardware`
+
+**7 acting tools** — gated:
+
+`plant_water` · `plant_fertilize` · `plant_light_treat` · `plant_move` · `plant_diary` · `plant_remember` · `plant_emergency_stop`
+
+`plant_emergency_stop` is always available and never refused — it kills motion, pumps and lights at once.
+
+Withhold acting entirely when you just want an observer:
+
+```js
+const observer = await plant.useBrain( { readOnly : true } )
+// acting tools are not merely blocked — they are never offered to the model
+```
+
+Or require a human for every action:
+
+```js
+await plant.useBrain( {
+  confirm : async ( tool, params ) => askTheHuman( `${tool.name}: ${JSON.stringify( params )}` ),
+} )
+```
+
+## Standing watch
+
+```js
+const stop = brain.supervise( {
+  intervalMs : 6 * 3600_000,
+  goal       : 'Check on the plant. Investigate anything wrong, act only if the evidence supports it.',
+} )
+```
+
+Every run is recorded — which tools were called, which were refused and by which gate:
+
+```js
+brain.stats()
+// { runs: 12, toolCalls: 47, refused: 6,
+//   byGate: { evidence: 4, subsystem: 2 },
+//   mostUsed: [ ['plant_status', 12], ['plant_diagnose', 9], … ] }
+```
+
+## Just the model, if that is all you want
+
+The brain is optional. Registering the Gateway as a plain AI provider is enough to stop needing an API key at all:
+
+```js
+import { openclawProvider, openclawEmbedder } from 'smartplant/integrations/openclaw'
+
+plant.ai.registerProvider( 'openclaw', openclawProvider() )
+plant.ai.use( 'openclaw' )
+```
+
+The same Gateway can supply embeddings, so [semantic memory](#-semantic-memory) also works with no key:
+
+```js
+const plant = await createPlant( {
+  knowledge : { vectors : { embedder : openclawEmbedder() } },
+} )
+```
+
+`useBrain()` does both by default — attaches the brain *and* switches the plant's ordinary AI to the Gateway. Pass `{ provider: false }` to keep them separate.
+
+## The other direction: your plant inside OpenClaw
+
+The same control surface, exported as an OpenClaw plugin, so the Gateway's own agent can operate the plant from whatever channel it is connected to — WhatsApp, Telegram, Slack, Discord.
 
 ```bash
 smartplant openclaw ./my-plant-plugin
 ```
 
-That writes a complete, valid plugin package:
+Generates the full package: `package.json` with the `openclaw` block, an `openclaw.plugin.json` manifest declaring the tool contracts, and an entry point using `definePluginEntry` + `api.registerTool`. Same tools, same gates.
 
-```
-my-plant-plugin/
-├── package.json            # with the `openclaw` block and pluginApi range
-├── openclaw.plugin.json    # manifest declaring the tool contracts
-├── index.js                # definePluginEntry + api.registerTool
-└── README.md
+```bash
+smartplant openclaw ./my-plugin --read-only   # observers only
 ```
 
-Point it at your real setup by editing `PLANT_CONFIG` in `index.js`:
+> **You:** Something's wrong with Rosa, investigate
+> **Assistant:** *(runs plant_status, plant_diagnose, plant_spectral_scan)*
+> Blue probe blunted at 1.6× control, red normal at 5.1×. That pattern is water stress, not malnutrition. Soil is at 8% and has been falling since Tuesday. She needs water — about 300ml.
 
-```js
-const PLANT_CONFIG = {
-  name    : 'Rosa',
-  species : 'Monstera deliciosa',
-  sensor  : { driver: 'serial', path: '/dev/ttyUSB0' },   // or mqtt / homeassistant / mock
-  ai      : { provider: 'ollama' },
-  memory  : { path: './smartplant.json' },
-}
-```
+## Configuration
 
-Then install it into your Gateway and restart it. One plant instance is shared across the process, so the memory file and the sensor connection are opened once, not once per message.
-
-### The seven tools
-
-| Tool | What the assistant can do |
+| | |
 | --- | --- |
-| `plant_status` | Wellbeing, every sensor reading, days since watering |
-| `plant_ask` | Ask the plant anything; it answers in first person from real data |
-| `plant_diagnose` | Rule-based conditions with confidence, evidence and treatments |
-| `plant_water` | Record a watering, so future advice accounts for it |
-| `plant_history` | Statistics and trends over a window |
-| `plant_diary` | The plant writes a journal entry, stored in its memory |
-| `plant_hardware` | Scan the host for boards, sensors and cameras |
+| URL | `OPENCLAW_URL`, default `http://127.0.0.1:18789` |
+| Token | `OPENCLAW_GATEWAY_TOKEN` — the Gateway requires auth by default |
 
-### What that feels like
-
-> **You:** How's Rosa doing?
-> **Assistant:** Rosa is at 84% — soil 62%, 21.6°C, good light. Last watered 3 days ago.
->
-> **You:** She looked droopy this morning, what's going on?
-> **Assistant:** The rules flag drought stress at 95% confidence: soil is at 14%, below the ideal 35-70%, and it has been falling 3% a day since Tuesday. Worth a thorough watering today.
->
-> **You:** Just gave her 200ml
-> **Assistant:** Recorded. I'll factor that into the next check.
-
-Every number there comes from a sensor or the stored history. If the AI is unreachable the tools still answer — they fall back to the deterministic offline voice rather than failing.
-
-### Exposing fewer tools
-
-If you would rather the assistant could read but not act:
-
-```js
-import { createToolHandlers } from 'smartplant/integrations/openclaw'
-
-const tools = createToolHandlers( plant, {
-  only : [ 'plant_status', 'plant_ask', 'plant_history' ],   // no plant_water
-} )
+```bash
+smartplant brain "check on the plant"
+smartplant brain "investigate" --read-only
 ```
 
-`generatePlugin( { tools: [...] } )` does the same for the generated package, and the manifest shrinks to match.
+If the Gateway is unreachable the error says so plainly, with the fix:
 
-## 2. OpenClaw as SmartPlant's AI provider
-
-The other direction: instead of SmartPlant holding its own API key, it asks your Gateway.
-
-```js
-import { openclawProvider } from 'smartplant/integrations/openclaw'
-
-plant.ai.registerProvider( 'openclaw', openclawProvider( {
-  url : 'http://localhost:4747',        // or OPENCLAW_URL
-} ) )
-
-plant.ai.use( 'openclaw' )
-
-await plant.speak( 'how are you today?' )   // routed through your Gateway
+```
+❌ Cannot reach the OpenClaw Gateway at http://127.0.0.1:18789. Is it running?
+   The Gateway requires auth by default — set OPENCLAW_GATEWAY_TOKEN.
 ```
 
-Useful when you already run a Gateway with your models configured, when you want every AI call in the house going through one place you can audit, or when the plant should use a local model the Gateway is already hosting.
+## One honest limit
 
-## Both at once
+OpenClaw is a Node application. It runs on a laptop, a server or a Raspberry Pi — **not on an Arduino or an ESP32**. That is fine, because it is not the layer that touches hardware:
 
-Nothing stops you doing both, and it is the arrangement that makes the plant feel like part of the household rather than a gadget:
-
-```js
-// The plant reasons through the Gateway…
-plant.ai.registerProvider( 'openclaw', openclawProvider() )
-plant.ai.use( 'openclaw' )
-
-// …and the Gateway can reach the plant.
-// (via the generated plugin, running in the same Gateway)
+```
+  ESP32 / Arduino  ──serial/MQTT──▶  Raspberry Pi  ──▶  you
+  (sensors, LEDs, pump)              (SmartPlant + OpenClaw Gateway)
 ```
 
-## Pushing alerts
+The microcontroller senses and actuates. SmartPlant measures and enforces. OpenClaw reasons. See [Firmware generation](#-firmware-generation) for the first box, and [`smartplant hardware`](#-hardware-autodetection) if you are not sure what you have.
 
-The tools are pull-based — the assistant asks, the plant answers. To have the plant reach *you*, hook an event to whatever notification path your Gateway exposes:
-
-```js
-plant.on( 'plant:damaged', async e => {
-  await notifyViaGateway( `Something damaged a leaf — ${e.summary.counts.variation_potential} variation potential(s) detected.` )
-} )
-
-plant.on( 'plant:thirsty', async e => {
-  // Corroborate before interrupting a human.
-  const verdict = plant.justifies( 'soil_low', RISK.MEDIUM )
-  if ( verdict.allowed ) await notifyViaGateway( verdict.explanation )
-} )
-```
-
-The `justifies()` check matters here: a notification system that fires on every noisy dip gets muted within a week, which is the same as not having one.
+Full example: [`lib/examples/07-openclaw-brain.js`](lib/examples/07-openclaw-brain.js) — it runs against a scripted gateway, so you can see the whole thing without installing OpenClaw.
 
 
 ---
@@ -831,6 +1003,7 @@ smartplant providers            # which AI backends are ready
 smartplant sensors              # which drivers are available
 smartplant hardware             # scan this machine for boards and sensors
 smartplant openclaw [dir]       # generate an OpenClaw plugin for your plant
+smartplant brain "<goal>"       # let an OpenClaw brain operate the plant
 ```
 
 Flags: `--memory` `--sensor` `--provider` `--model` `--language` `--persona` `--interval`.
@@ -861,6 +1034,8 @@ plant.context()                       plant.perceive()
 // Multimodal
 plant.useVision( config )             plant.see( opts )
 plant.listen( opts )
+plant.useSpectral( config )           plant.interrogate( opts )
+plant.useBrain( config )              plant.brain.run( goal )
 
 // AI & reasoning
 plant.analyze( question, opts )       plant.speak( message, opts )
@@ -880,9 +1055,9 @@ plant.init()    plant.startMonitoring()   plant.stopMonitoring()   plant.destroy
 plant.use( plugin )   plant.plugin( name )   plant.on( event, fn )
 ```
 
-**Subpath exports:** `smartplant/signals` · `/vision` · `/knowledge` · `/integrations` · `/integrations/openclaw` · `/firmware` · `/federated` · `/fusion` · `/control` · `/safety` · `/confidence` · `/personalization` · `/hardware` · `/sensors` · `/memory` · `/voice` · `/plugin`
+**Subpath exports:** `smartplant/signals` · `/vision` · `/knowledge` · `/integrations` · `/integrations/openclaw` · `/firmware` · `/federated` · `/fusion` · `/control` · `/safety` · `/confidence` · `/personalization` · `/hardware` · `/spectral` · `/sensors` · `/memory` · `/voice` · `/plugin`
 
-Runnable examples live in [`lib/examples/`](lib/examples) — all five work with no hardware and no API key.
+Runnable examples live in [`lib/examples/`](lib/examples) — all seven work with no hardware and no API key.
 
 ## Migrating from 1.x
 
