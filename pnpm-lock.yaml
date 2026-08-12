@@ -81,6 +81,12 @@ importers:
         specifier: workspace:*
         version: link:../../lib
 
+  plugins/colony:
+    devDependencies:
+      smartplant:
+        specifier: workspace:*
+        version: link:../../lib
+
   plugins/diary:
     devDependencies:
       smartplant:
@@ -100,6 +106,12 @@ importers:
         version: link:../../lib
 
   plugins/lighting:
+    devDependencies:
+      smartplant:
+        specifier: workspace:*
+        version: link:../../lib
+
+  plugins/migration:
     devDependencies:
       smartplant:
         specifier: workspace:*
