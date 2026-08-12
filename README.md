@@ -56,10 +56,10 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The nine layers](#the-nine-layers) · [Requirements](#requirements)
+- [The twelve layers](#the-twelve-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
-- **Advanced** — [Electrophysiology](#-electrophysiology) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
-- **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [Federated learning](#-federated-learning)
+- **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
+- **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
 - **[Symbiosis](#symbiosis)** — [Fusion](#-multirate-fusion) · [Evidence](#-evidence) · [Safety](#-safety) · [Control](#-hierarchical-control) · [Personalization](#-personalization)
 - **[🔬 Spectral](#-spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
 - **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
@@ -67,12 +67,15 @@ Then it goes further than a monitor:
 
 ---
 
-## The nine layers
+## The twelve layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
 | 🌡 **Sensors** | Seven pluggable drivers behind one `read()` contract | Your hardware, or none at all |
 | 🧬 **Signals** | Plant electrophysiology: action & variation potentials, circadian rhythm | The plant's own electrical voice |
+| 🪞 **Self-reference** | Electrome fingerprint, internal clock, two-site coherence, VPD-aware blue | Judged against itself, not a population average |
+| 🧬 **Inheritance** | Directed transfer of validated priors between individuals | A new plant starts with what the last one learned |
+| 🗨 **Colony** | Conversation between plants, with 71 skills as the fast path | They talk to each other, and only about what they measure |
 | 👁 **Vision** | Classical phenotyping, ONNX models, PlantCV bridge | See wilting hours before you notice it |
 | 💾 **Memory** | Persistent readings, care log, species profile | Advice builds on history, not a snapshot |
 | 🧠 **Knowledge** | Ontology, forward-chaining reasoner, semantic recall | Conclusions you can audit, not just trust |
@@ -244,6 +247,105 @@ circadianHealth( series ).verdict
 
 The `synthetic` transport generates physiologically shaped traces — circadian drift, background noise, mains hum, and correctly shaped APs and VPs — so the entire pipeline is testable and demonstrable with no electrode attached. `stimulate( 'variation_potential' )` simulates a wound in software.
 
+## 🪞 The plant on its own terms
+
+Everything above compares the plant against a reference: a species profile, a wall clock, a table of healthy ranges. That is where most plant monitoring quietly goes wrong, because the reference is a population average and your plant is one individual, in one pot, in one room.
+
+These four layers drop the reference and compare the plant against **itself**.
+
+### 🧬 Electrome fingerprint — what is normal for *this* plant
+
+A signature of the plant's baseline electrical state across several axes: complexity, entropy, variability, and the distribution of power across physiological bands. The library learns it over the first windows, then reports departures from it.
+
+```js
+const s = await plant.listen( { seconds : 600 } )
+
+s.shift.verdict
+// "Learning this plant's normal: 6/12 windows."
+// then, later:
+// "Signature has moved: complexity down 38%, band power shifted low.
+//  This plant is not behaving like itself."
+
+s.shift.delta[ 0 ]   // { axis: 'complexity', direction: 'down', weighted: 0.41 }
+```
+
+`plant:electrome-shift` fires when the signature genuinely moves.
+
+Two design decisions carry most of the weight. The fingerprint is **DC-offset invariant** — an electrode drifting by 40 mV is a wiring fact, not a new plant, and must not read as one. And the baseline **refuses to judge before it has settled**: a "normal" derived from a single window is not a normal, so early calls say so rather than inventing a verdict.
+
+### 🕐 Internal clock — what time it is *for the plant*
+
+`circadianHealth` asks whether a rhythm exists. This asks the question that actually changes behaviour: where is the plant in its own day, and how far is that from the clock on the wall?
+
+```js
+s.clock
+// { periodHours: 26.4, acrophaseHour: 15.2, subjectiveHour: 4.1,
+//   offsetHours: 2.2, freeRunning: true, aligned: false,
+//   verdict: 'Free-running at 26.4h rather than 24h. The plant is following its
+//             internal clock because the light cycle is not strong or regular
+//             enough to entrain it.' }
+
+timingAdvice( s.clock, 'probe' )
+// { good: false, betterInHours: 5.9,
+//   reason: 'A stomatal probe at subjective night measures a plant that has
+//            closed down. The response would read as "weak" for reasons that
+//            have nothing to do with health.' }
+```
+
+A plant whose subjective dawn falls at 3pm is not "arrhythmic" — it is entrained to something you did not intend: a corridor light, a west-facing window, a lamp on a timer. Every decision made on wall time is landing at the wrong point in its day.
+
+### 📡 Two-site coherence — is this the plant, or the electrode?
+
+The electrode is the weakest link in the whole evidence chain. A dry contact or a callus forming produces a confident, well-shaped waveform that means nothing, and every layer downstream then reasons beautifully about an artefact.
+
+Two electrodes fix what one never can, because plant signals **propagate** at speeds physiology constrains:
+
+| Event | Speed | A 50 mm gap implies |
+| --- | --- | --- |
+| **Action potential** | 1–40 mm/s | 1.2 – 50 s |
+| **Variation potential** | 0.5–5 mm/s | 10 – 100 s |
+| **System potential** | 0.1–2 mm/s | 25 – 500 s |
+
+```js
+await plant.attachSensor( {
+  driver : 'electrode', transport : 'synthetic',
+  sites  : [ { id : 'stem', distanceMm : 50 } ],
+} )
+
+s.coherence.stem.verdict
+// "Both electrodes saw the same event, 5.00s apart across 50mm. Implied speed
+//  10.00mm/s is consistent with an action potential (1-40mm/s).
+//  This is the plant, corroborated at two sites."
+```
+
+The failure modes are the point:
+
+- **Zero delay is diagnostic.** Nothing biological reaches two separated points at the same instant — but mains pickup and ground loops do exactly that. A simultaneous event is rejected as interference, not accepted as a strong signal.
+- **Overlapping speed ranges are reported honestly.** 2 mm/s fits all three event classes, so the library returns every candidate and names none. Claiming "variation potential" there would be false precision.
+- **An ambiguous lag corroborates nothing.** A periodic signal correlates just as well at *lag* as at *lag + period*, so when rival peaks come close the result is flagged ambiguous and coherence is withheld — match discrete events instead.
+
+That is corroboration grounded in physics rather than statistics, and it is very hard to fake.
+
+### 🔵 VPD-aware blue — the same response, opposite meanings
+
+Blue light opens stomata. So a strong blue response was read as a healthy, responsive plant. That reading is wrong roughly half the time, because it ignores the air.
+
+**Vapour pressure deficit** — how hard the atmosphere is pulling water out of the leaf — is now computed from temperature and humidity and folded into every blue reading:
+
+| Blue response | VPD | Soil | Reading |
+| --- | --- | --- | --- |
+| strong | high | dry | 🔴 **`demand_with_deficit`** — transpiring hard against a supply it does not have. This precedes sudden wilting. |
+| strong | high | wet | **`high_demand`** — demand, not comfort |
+| weak | low | — | **`no_demand`** — still humid air, not water stress |
+| weak | high | — | **`closed_under_demand`** — refusing to open under strong pull is a clear ABA signal: stress |
+
+```js
+plant.context().vpd       // 2.14
+plant.context().vpdBand   // 'severe'
+```
+
+The same closed stoma means "nothing to do" in still humid air and "the plant is defending itself" in dry air. Reading it without the atmosphere is how a monitoring system talks itself into watering a plant that is fine, or reassuring you about one that is not.
+
 ## 👁 Vision
 
 Three tiers behind one API. Use whichever you have.
@@ -364,6 +466,8 @@ const { advice, daysUntilWater } = await plant.plugin( 'watering' ).predictWater
 | 📔 `@smartplant/diary` | `logAndSummarize()` | The plant writes its own journal, stored in memory |
 | 🔮 `@smartplant/simulator` | `simulateConditions()` | `score()`, `sweep()` — find where tolerance breaks, instantly |
 | 🔬 `@smartplant/spectrum` | `diagnose()` | `probe()`, `treat()`, `doses()` — 🔵🟢🔴 interrogation with hard interlocks |
+| 🧬 `@smartplant/migration` | `bequeath()` | `receive()`, `wouldSuit()`, `outcome()` — inheritance between plants of one species |
+| 🗨 `@smartplant/colony` | `askPeer()` | `askAll()`, `report()`, `corroborate()` — a channel between plants a person can watch but not enter |
 
 Writing your own takes one function:
 
@@ -427,6 +531,147 @@ prometheusMetrics( plant )                                    // Grafana, Alertm
 **Home Assistant discovery** registers every metric as a proper entity under one device, with correct units and device classes, so it lands in dashboards, history and automations with no user configuration. Combined with the `homeassistant` sensor driver, the loop closes in both directions.
 
 **Node-RED flow generation** emits a complete importable flow — MQTT inputs, threshold checks, gauges and an alert path — so a SmartPlant config becomes a working visual automation in one paste.
+
+## 🗨 Colony — plants talking to plants
+
+A conversation channel between plants over Bluetooth (or any transport). Two plants on the same colony can simply talk: one asks, the other answers in its own voice, from its own readings.
+
+```js
+import { LoopbackBus } from 'smartplant/colony'
+
+const bus = new LoopbackBus()
+await rosa.joinColony( { transport : bus.endpoint( 'rosa' ) } )
+await lila.joinColony( { transport : bus.endpoint( 'lila' ) } )
+
+// `report()` takes no message: Rosa says how Rosa is, from Rosa's own readings.
+await rosa.colony.report( { to : 'lila' } )
+```
+
+### The channel is closed to people
+
+A human can watch every line — `transcript()` returns a copy, and each exchange raises `colony:message` — but **there is no way to write into it**. No method takes a sentence from a person and sends it as a plant. What a plant says is composed from its own readings.
+
+```js
+rosa.on( 'colony:message', line => console.log( line.from, '→', line.to, line.text ) )
+```
+
+That is also why nothing here has a **persona**. Personas are the register a plant uses to address its owner — poet, botanist, child — and `speak()` is the human-facing channel, raising `plant:spoke`, which means *the plant said something to you*. A plant answering another plant is not doing that. Routing colony talk through it would file plant-to-plant speech as speech to the owner, and dress it in a voice chosen for a human reader.
+
+**Skills are the fast path.** Instead of asking in prose and waiting for a model, a plant fires a named request and gets the fact straight back:
+
+```js
+await rosa.colony.ask( 'lila', 'sense.vpd-perception' )
+// { ok: true, says: 'My air is this dry — is anyone else feeling this pull?',
+//   data: { vpd: 0.944, band: 'comfortable' } }
+```
+
+**71 skills in seven families**, and the catalogue is open — `registerSkill()` adds your own.
+
+| Family | What it is for |
+| --- | --- |
+| `sense.*` | What I am feeling right now — light, VPD, electrical spikes, spectral quality |
+| `state.*` | How I am — turgor, stomata, photosynthetic rate, salinity |
+| `canopy.*` | Space, shade, growth direction, crown shyness |
+| `health.*` | Pests, wounds, recovery, checking on a quiet neighbour |
+| `rhythm.*` | Internal clock, sleep phase, stomatal orchestration, seasonal shift |
+| `rhizo.*` | The conversation underground — mycelium, exudates, root territory |
+| `consensus.*` | The colony talking about itself — identity, presence, trust, topology |
+
+### A plant only says what it can measure
+
+This is the rule the layer rests on, and it is the same one the [spectral contraindications](#safety-the-interlocks) use: **missing data blocks, it does not permit.**
+
+Each plant's vocabulary is derived from the drivers actually attached to it. A plant with no electrode does not say `sense.electrome-spike` quietly or with low confidence — the skill is not in its vocabulary, and the request comes back refused:
+
+```
+Rosa → Lila  asks for an electrical spike
+Lila → Rosa  "I have no electrode sensor, so I cannot tell you that."
+
+Rosa → Lila  asks about the mycelial network
+Lila → Rosa  "I have no mycorrhizal-probe sensor, so I cannot tell you that."
+```
+
+The refusal is itself an answer: the asker learns what this neighbour is blind to. And the vocabulary grows on its own when hardware appears — attach an electrode and three more skills become speakable.
+
+Skills nothing in the framework can measure yet (all of `rhizo.*`, CO₂, UV, sap flow, VOC emission) are **declared and mute**, with the reason stated. The vocabulary is complete and the silence is explained, rather than the gap being hidden or filled in later with invention.
+
+### A room is one witness, not five
+
+Plants in a room share a window, a radiator, a watering can and a human. Their observations are strongly correlated, so they are **not** independent sources.
+
+The [evidence ledger](#-evidence) combines cues with noisy-OR and counts distinct sources toward its corroboration threshold. Registering five neighbours as five sources would let one observation, counted five times, walk a high-risk action straight through that gate. So everything heard enters under the single source `colony`, with its strength set by how much the neighbours agree — and saturating, because the fortieth plant on the shelf adds nothing the second did not:
+
+```js
+ColonyMember.cuesFrom( answers, 'air_too_dry' )
+// [ { claim: 'air_too_dry', source: 'colony', strength: 0.35,
+//     detail: '2 neighbours agree, but they share a room — counted once, not 2 times' } ]
+```
+
+## 🧬 Inheritance between plants
+
+[Federated learning](#-federated-learning) pools statistics from many homes into an anonymous species profile. This is the other shape of the same idea: a **directed transfer from one mature plant to one new one**, rich and contextual, where the source is known and the receiver keeps its own identity.
+
+```js
+const bundle = await mature.exportInheritance()
+const { inheritance, compatibility } = await seedling.inherit( bundle )
+```
+
+The transfer is the easy part. The value is in the two refusals.
+
+### Evidence is not transferability
+
+The obvious way to rank a learned policy for export is by how much evidence stands behind it. That ranking is close to backwards.
+
+A policy with four hundred outcomes, every one recorded on the same windowsill, has enormous evidential weight and almost no transferable content. What it encodes is *that windowsill*. A policy tried thirty times across cold mornings and warm afternoons, damp substrate and dry, has less evidence and far more of what you actually want: a regularity that survived a change of conditions.
+
+So context diversity is not one term among several. **It is the gate**, and no amount of evidence buys past it:
+
+```
+shipped:
+  ✓ shift_toward_window
+      Transferable (0.931): held across 4 distinct situations over 32 outcomes.
+
+withheld:
+  ✗ water_at_low_soil
+      Not transferable: learned in a single set of conditions — this describes
+      that spot, not the plant; 100% of the evidence comes from one situation.
+```
+
+The withheld policy had **twelve times more evidence** than the one that shipped.
+
+### Inherited pathology is caught on arrival
+
+The bundle carries the conditions its priors were learned under, so the receiving plant can compare them against where it has landed.
+
+This matters because a plant that learned "water at 15% soil" did so in a pot that drained badly. Ship that to a plant with a pot that holds water and you have shipped a fix for a problem it does not have. Waiting for the prior to dilute away is not good enough — the plant suffers for the whole length of the dilution, which is exactly when it is most fragile.
+
+```
+compatibility: The two spots differ where it matters: soil (40–50 vs 63–73),
+               light (824–976 vs 224–370). Priors that depend on these will be
+               held back.
+
+held back on arrival:
+  ✗ soil_early_water
+      The environments differ on soil, which is exactly what this policy is
+      about. Held back — it would be a fix for a problem this plant may not have.
+```
+
+### The new body always wins
+
+An inherited prior is a starting guess with a finite weight. It is advisory until the plant has outcomes of its own, and it fades on a fixed schedule as those accumulate — Bayesian shrinkage, nothing discretionary:
+
+```
+inherited estimate: 0.7   ·   but this plant keeps finding it useless (0.0)
+
+  after  0 local outcomes → estimate 0.163  (inherited weight 0.233)
+  after  5 local outcomes → estimate 0.108  (inherited weight 0.155)
+  after 20 local outcomes → estimate 0.055  (inherited weight 0.078)
+  after 60 local outcomes → estimate 0.023  (inherited weight 0.033)
+```
+
+**What travels:** comfort ranges the source actually thrived in, policies that passed the gate, care cadence, the shape of the electrome baseline, and the origin conditions needed to check all of it.
+
+**What does not:** the name, current wellbeing, raw readings, notes, timestamps of when a home was occupied, open wounds, keys. The new plant is born with an inheritance, not a borrowed biography. Its own record starts empty.
 
 ## 🤝 Federated learning
 
@@ -1037,10 +1282,23 @@ plant.listen( opts )
 plant.useSpectral( config )           plant.interrogate( opts )
 plant.useBrain( config )              plant.brain.run( goal )
 
+// The plant on its own terms   (all returned by plant.listen)
+signal.fingerprint · signal.shift     signal.clock · signal.coherence
+plant.electrome                       plant.context().vpd / .vpdBand
+
 // AI & reasoning
 plant.analyze( question, opts )       plant.speak( message, opts )
 plant.learnSpecies()                  plant.diagnose( opts )
 plant.remember( note )                plant.recall( query, opts )
+
+// Colony
+plant.joinColony( { transport } )     plant.leaveColony()
+plant.colony.report( { to } )         plant.colony.ask( peer, skill )
+plant.colony.askAll( skill )          plant.colony.lexicon
+
+// Inheritance
+plant.exportInheritance( opts )       plant.inherit( bundle, opts )
+plant.inheritance.blend( action )     plant.inheritance.report()
 
 // Care
 plant.water()   plant.fertilize()   plant.log( type )   plant.note( text )
@@ -1055,9 +1313,9 @@ plant.init()    plant.startMonitoring()   plant.stopMonitoring()   plant.destroy
 plant.use( plugin )   plant.plugin( name )   plant.on( event, fn )
 ```
 
-**Subpath exports:** `smartplant/signals` · `/vision` · `/knowledge` · `/integrations` · `/integrations/openclaw` · `/firmware` · `/federated` · `/fusion` · `/control` · `/safety` · `/confidence` · `/personalization` · `/hardware` · `/spectral` · `/sensors` · `/memory` · `/voice` · `/plugin`
+**Subpath exports:** `smartplant/signals` · `/vision` · `/knowledge` · `/integrations` · `/integrations/openclaw` · `/firmware` · `/federated` · `/migration` · `/colony` · `/fusion` · `/control` · `/safety` · `/confidence` · `/personalization` · `/hardware` · `/spectral` · `/sensors` · `/memory` · `/voice` · `/plugin`
 
-Runnable examples live in [`lib/examples/`](lib/examples) — all seven work with no hardware and no API key.
+Runnable examples live in [`lib/examples/`](lib/examples) — all ten work with no hardware and no API key.
 
 ## Migrating from 1.x
 

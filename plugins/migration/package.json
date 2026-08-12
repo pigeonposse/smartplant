@@ -1,7 +1,7 @@
 {
-  "name": "@smartplant/spectrum",
+  "name": "@smartplant/migration",
   "version": "3.0.2",
-  "description": "Probes the plant with specific wavelengths and reads the electrical response of each photoreceptor pathway.",
+  "description": "Exports what a mature plant learned and grafts it onto a new one of the same species.",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -28,10 +28,10 @@
     "smartplant",
     "smartplant-plugin",
     "AI",
-    "spectrum",
-    "led",
-    "photobiology",
-    "electrophysiology"
+    "migration",
+    "inheritance",
+    "transfer-learning",
+    "priors"
   ],
   "author": "Alejo Malia <alejomalia@gmail.com>",
   "publishConfig": {

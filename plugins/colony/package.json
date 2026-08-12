@@ -1,7 +1,7 @@
 {
-  "name": "@smartplant/spectrum",
+  "name": "@smartplant/colony",
   "version": "3.0.2",
-  "description": "Probes the plant with specific wavelengths and reads the electrical response of each photoreceptor pathway.",
+  "description": "A conversation channel between plants, with 71 skills as the fast path for asking each other things.",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -28,10 +28,10 @@
     "smartplant",
     "smartplant-plugin",
     "AI",
-    "spectrum",
-    "led",
-    "photobiology",
-    "electrophysiology"
+    "colony",
+    "bluetooth",
+    "swarm",
+    "communication"
   ],
   "author": "Alejo Malia <alejomalia@gmail.com>",
   "publishConfig": {

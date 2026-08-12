@@ -1,6 +1,6 @@
 {
   "name": "@smartplant/simulator",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Projects how the plant would fare under hypothetical conditions.",
   "main": "index.js",
   "peerDependencies": {

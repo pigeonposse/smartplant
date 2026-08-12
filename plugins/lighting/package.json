@@ -1,6 +1,6 @@
 {
   "name": "@smartplant/lighting",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Placement, exposure-hour and grow-light recommendations.",
   "main": "index.js",
   "peerDependencies": {

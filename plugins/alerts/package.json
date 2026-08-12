@@ -1,6 +1,6 @@
 {
   "name": "@smartplant/alerts",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Species-aware alerting: turns raw threshold breaches into prioritized, actionable alerts.",
   "main": "index.js",
   "peerDependencies": {
