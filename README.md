@@ -1231,6 +1231,20 @@ const server = await plant.serve()
 
 No build step, no framework, and nothing fetched from anywhere — one file of HTML with the styles and script inline, served from `node:http`. Most of these run on a Raspberry Pi with no internet connection, and a CDN link would make the page blank exactly when the network is the thing that broke.
 
+It is a **terminal**, not a dashboard: three regions pinned to the viewport, nothing scrolls the page. A short banner with the logo, plant name and address; a console down the left; the instrument inventory down the right.
+
+### Why the vitals are a console
+
+A panel of gauges that overwrites itself shows you the present and destroys the past. You cannot tell a plant that has been at 5% humidity for an hour from one that dropped there a minute ago — and that difference is most of what matters. So the vitals line is **appended once a minute** and the previous lines stay:
+
+```
+19:51:53  smartplant · read-only monitor
+19:52:00  😐 53% | Temperature: 🌡️ 19.9°C | Humidity: 🏜️ 5.3% | Soil: 🏜️ 0% | Light: 🌑 9lux
+19:53:00  😐 51% | Temperature: 🌡️ 20.1°C | Humidity: 🏜️ 5.1% | Soil: 🏜️ 0% | Light: 🌑 11lux
+```
+
+The right column is the inventory and it deliberately never moves — a list that flickers invites you to watch it, and there is nothing there to watch.
+
 | Route | |
 | --- | --- |
 | `/` | The page |
