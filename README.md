@@ -56,12 +56,13 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The seventeen layers](#the-seventeen-layers) · [Requirements](#requirements)
+- [The eighteen layers](#the-eighteen-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
 - **[What worked last time](#-what-worked-last-time)** · **[System diagnosis](#-system-diagnosis)** · **[Looking at itself](#-looking-at-itself)** · [Maintenance](#-maintenance--the-health-of-the-instrument) · **[Learning it is wrong](#-learning-it-is-wrong)** · [Knowledge transfer](#-knowledge-transfer) · [Reading the electrome](#-reading-the-electrome)
 - **[🫀 Internal states](#-internal-states--what-the-plant-is-doing)** — defence activation · internal water stress · accumulated load · stress memory · circadian integrity
+- **[📇 Capability](#-what-a-plant-tells-the-others-it-has)** · **[🔦 Beacon mode](#-beacon-mode--talking-with-light)** · **[🛡 Security priming](#-security-priming--preparing-for-a-neighbours-threat)** · **[🚜 Navigation](#-moving-a-plant-without-being-clumsy)**
 - **[Symbiosis](#symbiosis)** — [Fusion](#-multirate-fusion) · [Evidence](#-evidence) · [Safety](#-safety) · [Control](#-hierarchical-control) · [Personalization](#-personalization)
 - **[🔬 Spectral](#-spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
 - **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
@@ -69,7 +70,7 @@ Then it goes further than a monitor:
 
 ---
 
-## The seventeen layers
+## The eighteen layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -90,6 +91,7 @@ Then it goes further than a monitor:
 | 🦿 **Body** | Multirate fusion, reflexes, safety limits, personalization | Autonomy that cannot kill the plant — see [Symbiosis](#symbiosis) |
 | 🔬 **Spectral** | 🔵🟢🔴 LED as a probe, not illumination | The plant is *interrogated*, not just listened to |
 | 🫀 **Internal states** | Five qualitative estimates of what the plant is *doing*, not what surrounds it | The system stops seeing only sensor numbers |
+| 🚜 **Navigation** | Constraints a robot stack cannot know, over a delegated ROS 2 planner | A pot is not a delivery robot |
 
 Every layer works alone. They compose.
 
@@ -1219,6 +1221,157 @@ Allelopathy and mycorrhizal transfer are real, need a shared substrate, and are 
 
 > One soil probe now speaks for two root systems drawing on it at different rates, and watering to one plant's reading waters both.
 
+## 📇 What a plant tells the others it has
+
+Until now a plant learned what a neighbour could do by asking and being refused. That works — the skill layer already answers *"I have no electrode"* rather than inventing a number — but every capability was discovered by a failed request, and no plant could **plan** around another's hardware.
+
+On joining, a plant now publishes a manifest:
+
+```js
+plant.colony.manifest
+// { id: 'ivy', species: 'Ficus', metrics: [ 'humidity', 'light', 'soil', 'temperature' ],
+//   faculties: [ 'see', 'electrode', 'spectral' ], photodiodeHz: null, declared: true }
+
+plant.colony.whoCanRead( 'airflow' )
+// { who: [], why: 'No neighbour reads airflow. A silence about airflow from this
+//   colony means the instrument is missing, not that the value is steady — which
+//   are entirely different facts.' }
+```
+
+That last distinction is the point. It is also what makes optical signalling possible at all, and what lets a colony with one camera route every pest question to the plant that can see instead of collecting five refusals.
+
+**It is a claim, not a measurement.** A plant saying it has a camera is self-reported and nothing verifies it; a stale manifest keeps asserting hardware that was unplugged an hour ago. So capability is **permission to ask**, never a promise of an answer, and every consumer still handles the refusal it was trying to avoid.
+
+## 🔦 Beacon mode — talking with light
+
+The spectral module drives LEDs *at* a plant to measure what comes back. The same hardware switches fast enough to carry data, which turns a diagnostic instrument into a transmitter: on-off keying in amber, decoded by a neighbour's photodiode.
+
+### The energy argument, stated correctly
+
+It is tempting to say an LED pulse costs a hundredth of a radio packet. **It does not.** A BLE advertisement is one of the cheapest things a battery-powered device can do, and per bit delivered, blinking an LED is *worse*.
+
+The real argument is narrower and it holds:
+
+- Keeping a **Wi-Fi association** alive is expensive in a way an advertisement is not, and a node with minutes of charge cannot afford to associate.
+- A radio that has **failed** transmits nothing at any price.
+- In darkness the optical channel gets an enormous SNR for free.
+
+So this is a fallback and a night channel — not a better radio.
+
+| System state | Main channel | Optical | Why |
+| --- | --- | --- | --- |
+| Daylight, healthy | Wi-Fi / BLE / TCP | **off** | Radio is faster, cheaper per bit, and puts no light on a neighbour |
+| Charge < 5%, or radio failed | *radios down* | **critical** | Not dying silently |
+| Dark, healthy | *radio idle* | **quiet** | Same message, fewer and dimmer pulses |
+
+### The half everyone forgets
+
+An ambient light sensor integrates over hundreds of milliseconds and reports about once a second — correct for daylight, hopeless for anything modulated. Sampling at 1 Hz cannot recover a signal switching faster than 0.5 Hz, and no cleverness at the sending end changes that.
+
+**So nothing transmits until a neighbour has declared a photodiode fast enough to decode it:**
+
+```js
+plant.colony.canSignal( 'fern' )
+// { can: false, reason: 'slow-receiver',
+//   why: '"fern" reads light with an ambient light sensor, which is far too slow
+//         to decode a pulsed message. […] This link needs a photodiode on a fast
+//         ADC at 1000 Hz or better on the receiving side.' }
+```
+
+A plant spending its last charge blinking at a lux sensor has not called for help. It has thrown the charge away and, worse, believes it was heard.
+
+Amber at 590 nm is the carrier for the same reason it is the spectral **control** channel — minimal perturbation. Green at 530 nm is the fallback for a sender buried in a canopy, because green penetrates leaf tissue instead of being absorbed at the surface. And a message is still light landing on a plant, so **every transmission is booked against the receiver's dose ledger** like any other emission.
+
+## 🛡 Security priming — preparing for a neighbour's threat
+
+Priming is well established: expose a plant to a low dose of a stress, or to a neighbour's alarm, and it does not mount a defence — it becomes *ready* to. Defence transcripts sit poised, and when the attack arrives the response is faster and larger. The plant pays very little until the threat is real.
+
+The colony channel already carries the warning. This is what a warned plant can **do** with it.
+
+### Three things it deliberately does not do
+
+**It does not lower red:far-red.** The instinct is that low R:FR signals threat and should push toward defence. It is precisely backwards — inactivating phytochrome B *suppresses* jasmonate and salicylate responsiveness. It is the canonical growth-defence trade-off: a plant that believes it is being shaded out spends on stem elongation and **disinvests from defence**. Pairing a UV-B pulse with low R:FR would induce defence with one hand and switch it off with the other. Here R:FR is held **high**.
+
+**It does not drive the electrode.** That micro-currents alter membrane potential is real. That there is a dosable, reproducible protocol for closing stomata to a chosen percentage with 0.5–2 µA is not, and a system that injects current into living tissue on the strength of a plausible mechanism has stopped being an instrument. The electrode stays a **witness** — it reports whether the priming is landing.
+
+**It does not accept a warning from anywhere.** A pest outbreak two thousand kilometres away, on the same species, says almost nothing about this room — and a global alert ring would contradict this library's own doctrine on transferability. Proximity is the whole signal, because the thing being warned about physically travels.
+
+| Ring | Range | Weight | Why |
+| --- | --- | --- | --- |
+| contact | ≤ 0.4 m | 1.0 | Mites walk this; there is no gap to cross |
+| room | ≤ 8 m | 0.6 | Same air, same watering can, same hands |
+| building | ≤ 60 m | 0.25 | Worth knowing, not worth spending on alone |
+| beyond | — | **0** | *"A pest on the same species in another city is a fact about that city."* |
+
+Multiplied by host relevance: same species `×1`, same archetype `×0.5`, unrelated `×0.25` — discounted, not dismissed, because a spider mite eats almost anything.
+
+### Priming is a cost, so it can be refused
+
+```js
+considerAlert( plant, alert )
+// { prime: false, blocked: 'stress_load',
+//   why: '… Priming costs a plant real resources — phenolics and flavonoids are
+//         built out of carbon that would otherwise be growth — and asking that of
+//         a plant already running on reduced capacity trades a possible threat
+//         for a certain cost. Watching instead.' }
+```
+
+### The protocol, ordered by cost
+
+`airflow → uvb → watch → stand-down`
+
+**Airflow** runs first and always: it breaks the leaf boundary layer, drier surfaces are worse for spore germination, and it costs the plant almost nothing.
+
+**UV-B** is real — it activates UVR8, driving phenolics and flavonoids that toughen leaf tissue, and it is used commercially in glasshouses. It is also the most dangerous thing this library can emit, so it is **off by default** and passes five interlocks:
+
+| Interlock | Refusal |
+| --- | --- |
+| Not enabled per-installation | It can injure the person in the room, so it is opt-in, never inherited |
+| Fixture has no UV-B channel | Nothing in the visible spectrum substitutes — UVR8 does not absorb it |
+| **Room is occupied** | Burns skin and eyes, and a plant on a shelf is at eye height |
+| Alert weight < 0.5 | The strongest intervention is held for a close, host-relevant threat |
+| 90 s/day cap | *"cannot be raised by a caller"* — the response **is** a response to DNA damage |
+
+**Stand-down is mandatory** after six hours unless the warning is renewed. A primed state nobody stands down is the growth-defence trade-off paid forever for a threat that passed.
+
+## 🚜 Moving a plant without being clumsy
+
+### What this is not
+
+It is **not** a SLAM implementation, path planner or costmap. ROS 2 and Nav2 have spent a decade on those and do them properly; a version written here would be worse in every way that matters while looking, from the outside, like it worked — the most dangerous kind of code to put underneath a pot.
+
+So mapping, localisation and planning are delegated behind a three-method `Surveyor` contract, with a `ros2Surveyor()` adapter. The **base implementation knows nothing on purpose**, so a plant with no navigation stack refuses to move rather than moving badly.
+
+### What a robot stack does not know about a plant
+
+```js
+canCross( { heightM: 2, baseM: 0.35, wheelbaseM: 0.4 }, { stepM: 0.04 } )
+// { safe: false,
+//   why: 'Refused. 2m tall on a 0.35m base tips at 10° and this imposes 6°.
+//         A delivery robot would cross this without noticing; it is a tipping
+//         moment for a plant with its mass this high.' }
+```
+
+```js
+worthMoving( here, brightWindowsill, { metric: 'light' } )
+// { better: false, gain: 8600,
+//   why: 'light improves by 8600.0, and temperature moves 21 → 14, airflow moves
+//         0.1 → 0.9. That is a trade rather than an improvement, and it is the
+//         trade that makes "move toward the light" dangerous — the brightest spot
+//         in a flat is very often the coldest and draughtiest one.' }
+```
+
+`planMove()` runs every check in the order that fails cheapest first, and each refusal is one only this library can make:
+
+| Refusal | Because |
+| --- | --- |
+| `defending` | An [internal state](#-internal-states--what-the-plant-is-doing) says the plant is already spending on something |
+| `biotic` | The destination puts it beside an infested neighbour — and a plant that cannot see cannot clear itself |
+| `tipping` | Geometry. Undeclared height and base **refuses**: *"two numbers with a tape measure"* |
+| `charge` | The **round trip**, not the trip — a plant that arrives stranded cannot get back |
+| `worse-destination` | Nobody measured it, or the gain costs more than it gives |
+| `no-map` | *"Everything above was checked and passed; only the navigation is missing."* |
+
 ## 🧬 Inheritance between plants
 
 [Federated learning](#-federated-learning) pools statistics from many homes into an anonymous species profile. This is the other shape of the same idea: a **directed transfer from one mature plant to one new one**, rich and contextual, where the source is known and the receiver keeps its own identity.
@@ -1917,6 +2070,17 @@ plant.colony.streamAid( id, { target, satisfied } )
 plant.colony.coupling( { reading, metres }, reference )
 plant.colony.warnNeighbours( { near } )
 plant.colony.primed                   canOffer( plant, AID.HUDDLE )
+
+// Colony: capability, light and priming
+plant.colony.manifest                 plant.colony.whoCanRead( metric )
+plant.colony.canSignal( peer )        plant.colony.opticalPeers()
+beaconMode( { charge, radioFailed, ambientLux } )
+prepareBeacon( sender, receiver, msg, { mode } )
+considerAlert( plant, alert )         protocol( decision )
+
+// Navigation — the constraints, not the planner
+canCross( chassis, obstacle )         worthMoving( here, there, want )
+planMove( plant, move, { surveyor } ) ros2Surveyor( bridge )
 
 // Internal states — what the plant is doing
 plant.states()                        plant.defense()
