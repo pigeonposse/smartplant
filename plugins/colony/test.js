@@ -57,46 +57,46 @@ describe( '@smartplant/colony', () => {
 	it( 'joins, finds its neighbours and reports the roll', async () => {
 
 		const bus = new LoopbackBus()
-		const rosa = await join( bus, 'Rosa' )
-		const lila = await join( bus, 'Lila' )
+		const ivy = await join( bus, 'Ivy' )
+		const hazel = await join( bus, 'Hazel' )
 
-		const roll = await rosa.plugin( 'colony' ).roll()
+		const roll = await ivy.plugin( 'colony' ).roll()
 
-		assert.deepEqual( roll.peers, [ 'lila' ] )
+		assert.deepEqual( roll.peers, [ 'hazel' ] )
 		assert.ok( roll.speak > 0 )
 		assert.ok( roll.blindSpots > 0, 'a plant should know what it cannot answer' )
 
-		await bye( [ rosa, lila ] )
+		await bye( [ ivy, hazel ] )
 
 	} )
 
 	it( 'answers a named request with the fact', async () => {
 
 		const bus = new LoopbackBus()
-		const rosa = await join( bus, 'Rosa' )
-		const lila = await join( bus, 'Lila', { temperature : 21, humidity : 62 } )
+		const ivy = await join( bus, 'Ivy' )
+		const hazel = await join( bus, 'Hazel', { temperature : 21, humidity : 62 } )
 
-		const r = await rosa.plugin( 'colony' ).askPeer( 'lila', 'sense.vpd-perception' )
+		const r = await ivy.plugin( 'colony' ).askPeer( 'hazel', 'sense.vpd-perception' )
 
 		assert.equal( r.ok, true )
 		assert.ok( Number.isFinite( r.data.vpd ) )
 
-		await bye( [ rosa, lila ] )
+		await bye( [ ivy, hazel ] )
 
 	} )
 
 	it( 'refuses what it has no sensor for, and says which', async () => {
 
 		const bus = new LoopbackBus()
-		const rosa = await join( bus, 'Rosa' )
-		const lila = await join( bus, 'Lila' )
+		const ivy = await join( bus, 'Ivy' )
+		const hazel = await join( bus, 'Hazel' )
 
-		const r = await rosa.plugin( 'colony' ).askPeer( 'lila', 'sense.electrome-spike' )
+		const r = await ivy.plugin( 'colony' ).askPeer( 'hazel', 'sense.electrome-spike' )
 
 		assert.equal( r.ok, false )
 		assert.match( r.reason, /no electrode/ )
 
-		await bye( [ rosa, lila ] )
+		await bye( [ ivy, hazel ] )
 
 	} )
 
@@ -120,26 +120,26 @@ describe( '@smartplant/colony', () => {
 	it( 'holds a conversation and keeps the transcript', async () => {
 
 		const bus = new LoopbackBus()
-		const rosa = await join( bus, 'Rosa' )
-		const lila = await join( bus, 'Lila' )
+		const ivy = await join( bus, 'Ivy' )
+		const hazel = await join( bus, 'Hazel' )
 
-		const reply = await rosa.plugin( 'colony' ).report( { to : 'lila' } )
+		const reply = await ivy.plugin( 'colony' ).report( { to : 'hazel' } )
 
 		assert.equal( reply.ok, true )
 		assert.ok( reply.text.length > 0 )
-		assert.ok( rosa.plugin( 'colony' ).transcript().some( l => l.from === 'rosa' ) )
+		assert.ok( ivy.plugin( 'colony' ).transcript().some( l => l.from === 'ivy' ) )
 
-		await bye( [ rosa, lila ] )
+		await bye( [ ivy, hazel ] )
 
 	} )
 
 	it( 'is a channel a person can watch but not enter', async () => {
 
 		const bus = new LoopbackBus()
-		const rosa = await join( bus, 'Rosa' )
-		const lila = await join( bus, 'Lila' )
+		const ivy = await join( bus, 'Ivy' )
+		const hazel = await join( bus, 'Hazel' )
 
-		const colony = rosa.plugin( 'colony' )
+		const colony = ivy.plugin( 'colony' )
 
 		// No method takes a sentence to send, and no persona is declared: the
 		// personas exist for addressing an owner, and no owner is in here.
@@ -147,8 +147,8 @@ describe( '@smartplant/colony', () => {
 		assert.equal( colony.persona, undefined )
 
 		const seen = []
-		rosa.on( 'colony:message', line => seen.push( line ) )
-		await colony.report( { to : 'lila' } )
+		ivy.on( 'colony:message', line => seen.push( line ) )
+		await colony.report( { to : 'hazel' } )
 		assert.ok( seen.length > 0, 'watching works' )
 
 		// And the window is read-only.
@@ -156,25 +156,25 @@ describe( '@smartplant/colony', () => {
 		copy[ 0 ].text = 'tampered'
 		assert.notEqual( colony.transcript()[ 0 ].text, 'tampered' )
 
-		await bye( [ rosa, lila ] )
+		await bye( [ ivy, hazel ] )
 
 	} )
 
 	it( 'counts a roomful of neighbours as one source, not many', async () => {
 
 		const bus = new LoopbackBus()
-		const rosa = await join( bus, 'Rosa' )
+		const ivy = await join( bus, 'Ivy' )
 		const others = []
-		for ( const n of [ 'Lila', 'Vera', 'Nina', 'Ada' ] ) others.push( await join( bus, n ) )
+		for ( const n of [ 'Hazel', 'Willow', 'Nina', 'Ada' ] ) others.push( await join( bus, n ) )
 
-		const { answers, cues } = await rosa.plugin( 'colony' ).corroborate( 'sense.vpd-perception', 'air_too_dry' )
+		const { answers, cues } = await ivy.plugin( 'colony' ).corroborate( 'sense.vpd-perception', 'air_too_dry' )
 
 		assert.equal( answers.length, 4 )
 		assert.equal( cues.length, 1, 'four neighbours, one cue' )
 		assert.equal( cues[ 0 ].source, 'colony' )
 		assert.match( cues[ 0 ].detail, /share a room/ )
 
-		await bye( [ rosa, ...others ] )
+		await bye( [ ivy, ...others ] )
 
 	} )
 
@@ -183,31 +183,31 @@ describe( '@smartplant/colony', () => {
 		// The plugin definition is shared between installs; the membership must
 		// not be, or two plants in one process would answer as each other.
 		const bus = new LoopbackBus()
-		const rosa = await join( bus, 'Rosa' )
-		const lila = await join( bus, 'Lila' )
+		const ivy = await join( bus, 'Ivy' )
+		const hazel = await join( bus, 'Hazel' )
 
-		assert.notEqual( rosa.plugin( 'colony' ), lila.plugin( 'colony' ) )
-		assert.deepEqual( await rosa.plugin( 'colony' ).peers(), [ 'lila' ] )
-		assert.deepEqual( await lila.plugin( 'colony' ).peers(), [ 'rosa' ] )
+		assert.notEqual( ivy.plugin( 'colony' ), hazel.plugin( 'colony' ) )
+		assert.deepEqual( await ivy.plugin( 'colony' ).peers(), [ 'hazel' ] )
+		assert.deepEqual( await hazel.plugin( 'colony' ).peers(), [ 'ivy' ] )
 
-		const identity = await rosa.plugin( 'colony' ).askPeer( 'lila', 'consensus.identity' )
-		assert.equal( identity.data.name, 'Lila' )
+		const identity = await ivy.plugin( 'colony' ).askPeer( 'hazel', 'consensus.identity' )
+		assert.equal( identity.data.name, 'Hazel' )
 
-		await bye( [ rosa, lila ] )
+		await bye( [ ivy, hazel ] )
 
 	} )
 
 	it( 'leaves the colony when the plant is destroyed', async () => {
 
 		const bus = new LoopbackBus()
-		const rosa = await join( bus, 'Rosa' )
-		const lila = await join( bus, 'Lila' )
+		const ivy = await join( bus, 'Ivy' )
+		const hazel = await join( bus, 'Hazel' )
 
-		await lila.destroy()
+		await hazel.destroy()
 
-		assert.deepEqual( await rosa.plugin( 'colony' ).peers(), [] )
+		assert.deepEqual( await ivy.plugin( 'colony' ).peers(), [] )
 
-		await rosa.destroy()
+		await ivy.destroy()
 
 	} )
 

@@ -20,7 +20,7 @@ import { createPlant } from 'smartplant'
 import stress from '@smartplant/stress'
 
 const plant = await createPlant( {
-  name    : 'Rosa',
+  name    : 'Ivy',
   species : 'Monstera deliciosa',
   sensor  : 'mock',                  // no hardware needed
   ai      : { provider : 'ollama' }, // or gemini / openai / claude / grok

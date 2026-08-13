@@ -34,7 +34,13 @@
     "./prediction": "./src/prediction/index.js",
     "./checkup": "./src/checkup/index.js",
     "./maintenance": "./src/maintenance/index.js",
-    "./diagnosis": "./src/diagnosis/index.js"
+    "./diagnosis": "./src/diagnosis/index.js",
+    "./resolutions": "./src/resolutions/index.js",
+    "./inference": "./src/inference/index.js",
+    "./journal": "./src/journal/index.js",
+    "./devices": "./src/devices/index.js",
+    "./archetypes": "./src/archetypes/index.js",
+    "./power": "./src/power/index.js"
   },
   "bin": {
     "smartplant": "src/cli.js"

@@ -20,7 +20,7 @@ import { createPlant } from 'smartplant'
 import alerts from '@smartplant/alerts'
 
 const plant = await createPlant( {
-  name    : 'Rosa',
+  name    : 'Ivy',
   species : 'Monstera deliciosa',
   sensor  : 'mock',                  // no hardware needed
   ai      : { provider : 'ollama' }, // or gemini / openai / claude / grok

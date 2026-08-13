@@ -27,11 +27,11 @@ smartplant
 import { createPlant } from 'smartplant'
 
 const plant = await createPlant( {
-  name    : 'Rosa',
+  name    : 'Ivy',
   species : 'Monstera deliciosa',
   sensor  : 'mock',                  // no hardware needed
   ai      : { provider : 'ollama' }, // or gemini / openai / claude / grok / mock
-  memory  : { path : './rosa.json' },
+  memory  : { path : './ivy.json' },
 } )
 
 await plant.read()
@@ -56,11 +56,11 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The fifteen layers](#the-fifteen-layers) · [Requirements](#requirements)
+- [The sixteen layers](#the-sixteen-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
-- **[System diagnosis](#-system-diagnosis)** · **[Looking at itself](#-looking-at-itself)** · [Maintenance](#-maintenance--the-health-of-the-instrument) · **[Learning it is wrong](#-learning-it-is-wrong)** · [Knowledge transfer](#-knowledge-transfer) · [Reading the electrome](#-reading-the-electrome)
+- **[What worked last time](#-what-worked-last-time)** · **[System diagnosis](#-system-diagnosis)** · **[Looking at itself](#-looking-at-itself)** · [Maintenance](#-maintenance--the-health-of-the-instrument) · **[Learning it is wrong](#-learning-it-is-wrong)** · [Knowledge transfer](#-knowledge-transfer) · [Reading the electrome](#-reading-the-electrome)
 - **[Symbiosis](#symbiosis)** — [Fusion](#-multirate-fusion) · [Evidence](#-evidence) · [Safety](#-safety) · [Control](#-hierarchical-control) · [Personalization](#-personalization)
 - **[🔬 Spectral](#-spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
 - **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
@@ -68,7 +68,7 @@ Then it goes further than a monitor:
 
 ---
 
-## The fifteen layers
+## The sixteen layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -78,6 +78,7 @@ Then it goes further than a monitor:
 | 🧬 **Inheritance** | Directed transfer of validated priors between individuals | A new plant starts with what the last one learned |
 | 🗨 **Colony** | Conversation between plants, with 73 skills as the fast path | They talk to each other, and only about what they measure |
 | 🔁 **Self-correction** | Prediction error, identity drift, decaying priors, response hysteresis | The system finds out when *it* is the thing that is wrong |
+| 🔎 **Experience** | A ledger of what actually resolved each problem, against the base rate of doing nothing | It reuses what worked, without inventing what did not |
 | 🩻 **Diagnosis** | One command that checks everything wired up and says what to fix | Know it works before walking away |
 | 🩺 **Self-check** | Weekly and monthly reviews, plus a technical inspection of the instrument | It watches its own trajectory, and its own sensors |
 | 👁 **Vision** | Classical phenotyping, ONNX models, PlantCV bridge | See wilting hours before you notice it |
@@ -528,13 +529,87 @@ import {
 
 new InfluxExporter( { bucket : 'plants' } ).attach( plant )   // time series (v1 & v2)
 await new HomeAssistantPublisher().attach( plant )            // MQTT discovery, real entities
-generateFlow( { plantName : 'Rosa' } )                        // importable Node-RED flow
+generateFlow( { plantName : 'Ivy' } )                        // importable Node-RED flow
 prometheusMetrics( plant )                                    // Grafana, Alertmanager
 ```
 
 **Home Assistant discovery** registers every metric as a proper entity under one device, with correct units and device classes, so it lands in dashboards, history and automations with no user configuration. Combined with the `homeassistant` sensor driver, the loop closes in both directions.
 
 **Node-RED flow generation** emits a complete importable flow — MQTT inputs, threshold checks, gauges and an alert path — so a SmartPlant config becomes a working visual automation in one paste.
+
+## 🔎 What worked last time
+
+The library recorded that a problem happened, and recorded that something was done. It never joined them up — so every time a familiar problem came back, the system met it as though for the first time, with no access to the fact that this plant has been here four times before and one particular thing helped.
+
+```js
+await plant.whatWorkedBefore( 'plant:thirsty' )
+```
+
+Episodes open and close on their own from the condition events, and care given while a problem is open is attributed to it. Care given while nothing is wrong is deliberately **not** recorded as treatment: routine watering on a healthy plant cures nothing, and counting it is exactly how *"watering fixes everything"* gets learned.
+
+### The control is the design, not an option
+
+Almost every plant problem resolves on its own. Soil dries and gets watered on the usual schedule; a hot afternoon passes; a droop recovers overnight. Record "problem → I did X → problem went away" and you will learn with total confidence that X works. So will everything else you happened to do that week.
+
+And because a ledger like this is used to *choose* the next action, **it confirms itself**. It recommends X, X gets credit again, X becomes doctrine. A resolution ledger without a control is a machine for manufacturing superstition, and it is worse than no ledger at all, because it is confident.
+
+So every problem carries a **base rate**: how often, and how fast, it cleared when nothing was done. An action is credited only with what it achieved *above* that.
+
+```
+🚫  "water" cleared it 100% of the time against 100% for doing nothing — a
+    difference of 0, which is inside the noise for 5 episodes. This plant has
+    probably been recovering on its own.
+
+✅  "water" resolved "thirsty" in 5 episodes where it was the only thing done —
+    100% against 20% for waiting, and about 52h sooner.
+```
+
+Two more ways it would otherwise lie, both refused:
+
+- **Everything at once.** Water, feed and move a plant on the same afternoon and no arithmetic recovers which one helped. Credit comes only from episodes where an action appeared alone; the rest are reported as unattributable, with *"change one thing at a time if you want this to learn."*
+- **Tiny n.** A houseplant produces perhaps three or four episodes of a given problem in a year. Four are required before anything is claimed, and confidence is capped at 0.7 however many there are.
+
+
+### The same problem is not the same problem
+
+"Thirsty" in dry air at 31°C and "thirsty" in still humid air at 17°C share a name and very little else: different cause, different urgency, quite possibly a different fix. Pooling them produces an average treatment for a situation nobody is in.
+
+So episodes carry the conditions they began in, and the lookup narrows to the ones that actually resemble now:
+
+```
+pooled, ignoring conditions   →  water works       (lift 0.5)
+today it is hot and dry       →  water works       (lift 1.0)
+today it is cool and humid    →  water adds nothing — it was recovering anyway
+```
+
+When too few past episodes match, the wider answer is given **with that fact attached** rather than silently — because "what works for this problem" and "what works for this problem in weather like today" are different questions.
+
+### Asking the colony
+
+A plant that has met a problem twice, next to a neighbour that has met it twenty times, should be able to ask.
+
+```js
+await plant.colony.askColonyWhatWorked( 'plant:thirsty' )
+```
+
+Three things separate this from a rumour mill:
+
+- **Same species only.** What resolves drought in a succulent is not what resolves it in a fern, and a confident answer from the wrong species is worse than none.
+- **The base rate travels with the answer.** *"Watering worked every time"* is not information. *"Watering worked every time, and it cleared on its own nine times in ten anyway"* is the same sentence meaning the opposite. Without the second half, a neighbour's routine gets adopted as a cure.
+- **The room is one witness.** Neighbours are pooled into a single finding, never counted as independent replication — they share a window, a watering can and a human.
+
+A neighbour's experience is capped at **0.45 confidence**, below anything this plant's own record can earn, and `whatWorkedBefore()` only reaches for it when the plant has nothing of its own to go on. It is another pot, in another spot: worth trying, not worth trusting over what happened here.
+
+### Hysteresis finally does something
+
+The library already measured whether a plant answers the same stimulus differently since a stress episode. It then did nothing with it — measured in one module, reported in another, never acted on. `doseModifier()` closes that loop, and the mapping is deliberately **asymmetric**:
+
+| Response now | What happens |
+| --- | --- |
+| **stronger / faster** | Cut the dose to 60–75%. The amount that used to be right now overshoots. |
+| **weaker / slower** | **Hold, and look.** Do *not* give more. |
+
+That second row is the important one. A reduced response is at least as often damage as tolerance, and root rot answers a bigger drink by getting worse. The tempting move there is the harmful one, so the system refuses to make it and asks why the response fell instead.
 
 ## 🩻 System diagnosis
 
@@ -551,7 +626,7 @@ System diagnosis
   🟢  reading          Read temperature 21.4, humidity 55.2, soil 38.1, light 820.
   🔴  electrode        The trace is flat (spread 0.00000mV). Living tissue is never
                        electrically silent — this electrode is not in contact with a plant.
-  🟢  memory           Persisting to ./rosa.json (412 readings stored).
+  🟢  memory           Persisting to ./ivy.json (412 readings stored).
   🟡  ai               The mock provider returns canned text rather than reasoning.
   ⚪  vision           No camera. Visible symptoms will not be seen.
 
@@ -735,9 +810,9 @@ And the one confound that cannot be excluded is stated in the result rather than
 A plant that has been in a room long enough to know it notices a newcomer that has not, and offers what it has learned about **this place**.
 
 ```js
-await vieja.colony.newcomers()      // who has not been here long
-await vieja.colony.teach( 'nueva' ) // offer what the room does
-await nueva.colony.learnFromColony()
+await elder.colony.newcomers()      // who has not been here long
+await elder.colony.teach( 'newcomer' ) // offer what the room does
+await newcomer.colony.learnFromColony()
 ```
 
 This replaced an earlier idea — succession, where a plant's knowledge is distributed when it dies. That framing had a fatal flaw: **the trigger is undecidable.** A dormant plant, a dead plant and a disconnected electrode look very similar electrically, and a false positive means distributing the estate of a plant that is merely asleep. "Has little local experience" is directly measurable, and being wrong about it is harmless — teach a plant that already knew, and its own evidence outweighs the lesson anyway.
@@ -812,16 +887,16 @@ import { LoopbackBus, ColonyServer, ColonyClient } from 'smartplant/colony'
 
 // Same process — two plants on one Raspberry Pi.
 const bus = new LoopbackBus()
-await rosa.joinColony( { transport : bus.endpoint( 'rosa' ) } )
-await lila.joinColony( { transport : bus.endpoint( 'lila' ) } )
+await ivy.joinColony( { transport : bus.endpoint( 'ivy' ) } )
+await hazel.joinColony( { transport : bus.endpoint( 'hazel' ) } )
 
 // Different machines — plain TCP, no broker, no dependencies.
-const server = new ColonyServer( { id : 'rosa' } )           // binds loopback by default
-await rosa.joinColony( { transport : server } )
-await lila.joinColony( { transport : new ColonyClient( { id : 'lila', port : server.port } ) } )
+const server = new ColonyServer( { id : 'ivy' } )           // binds loopback by default
+await ivy.joinColony( { transport : server } )
+await hazel.joinColony( { transport : new ColonyClient( { id : 'hazel', port : server.port } ) } )
 
-// `report()` takes no message: Rosa says how Rosa is, from Rosa's own readings.
-await rosa.colony.report( { to : 'lila' } )
+// `report()` takes no message: Ivy says how Ivy is, from Ivy's own readings.
+await ivy.colony.report( { to : 'hazel' } )
 ```
 
 ### The channel is closed to people
@@ -829,7 +904,7 @@ await rosa.colony.report( { to : 'lila' } )
 A human can watch every line — `transcript()` returns a copy, and each exchange raises `colony:message` — but **there is no way to write into it**. No method takes a sentence from a person and sends it as a plant. What a plant says is composed from its own readings.
 
 ```js
-rosa.on( 'colony:message', line => console.log( line.from, '→', line.to, line.text ) )
+ivy.on( 'colony:message', line => console.log( line.from, '→', line.to, line.text ) )
 ```
 
 That is also why nothing here has a **persona**. Personas are the register a plant uses to address its owner — poet, botanist, child — and `speak()` is the human-facing channel, raising `plant:spoke`, which means *the plant said something to you*. A plant answering another plant is not doing that. Routing colony talk through it would file plant-to-plant speech as speech to the owner, and dress it in a voice chosen for a human reader.
@@ -837,7 +912,7 @@ That is also why nothing here has a **persona**. Personas are the register a pla
 **Skills are the fast path.** Instead of asking in prose and waiting for a model, a plant fires a named request and gets the fact straight back:
 
 ```js
-await rosa.colony.ask( 'lila', 'sense.vpd-perception' )
+await ivy.colony.ask( 'hazel', 'sense.vpd-perception' )
 // { ok: true, says: 'My air is this dry — is anyone else feeling this pull?',
 //   data: { vpd: 0.944, band: 'comfortable' } }
 ```
@@ -861,11 +936,11 @@ This is the rule the layer rests on, and it is the same one the [spectral contra
 Each plant's vocabulary is derived from the drivers actually attached to it. A plant with no electrode does not say `sense.electrome-spike` quietly or with low confidence — the skill is not in its vocabulary, and the request comes back refused:
 
 ```
-Rosa → Lila  asks for an electrical spike
-Lila → Rosa  "I have no electrode sensor, so I cannot tell you that."
+Ivy → Hazel  asks for an electrical spike
+Hazel → Ivy  "I have no electrode sensor, so I cannot tell you that."
 
-Rosa → Lila  asks about the mycelial network
-Lila → Rosa  "I have no mycorrhizal-probe sensor, so I cannot tell you that."
+Ivy → Hazel  asks about the mycelial network
+Hazel → Ivy  "I have no mycorrhizal-probe sensor, so I cannot tell you that."
 ```
 
 The refusal is itself an answer: the asker learns what this neighbour is blind to. And the vocabulary grows on its own when hardware appears — attach an electrode and three more skills become speakable.
@@ -1473,7 +1548,7 @@ Generates the full package: `package.json` with the `openclaw` block, an `opencl
 smartplant openclaw ./my-plugin --read-only   # observers only
 ```
 
-> **You:** Something's wrong with Rosa, investigate
+> **You:** Something's wrong with Ivy, investigate
 > **Assistant:** *(runs plant_status, plant_diagnose, plant_spectral_scan)*
 > Blue probe blunted at 1.6× control, red normal at 5.1×. That pattern is water stress, not malnutrition. Soil is at 8% and has been falling since Tuesday. She needs water — about 300ml.
 
@@ -1576,6 +1651,9 @@ plant.colony.askAll( skill )          plant.colony.lexicon
 plant.colony.newcomers()              plant.colony.teach( peer )
 plant.colony.learnFromColony()
 
+// Experience
+plant.whatWorkedBefore( problem )     plant.resolutions.report()
+
 // Looking at itself
 plant.systemDiagnosis( opts )         plant.checkup( { period } )
 plant.maintenance()
@@ -1605,7 +1683,7 @@ plant.init()    plant.startMonitoring()   plant.stopMonitoring()   plant.destroy
 plant.use( plugin )   plant.plugin( name )   plant.on( event, fn )
 ```
 
-**Subpath exports:** `smartplant/signals` · `/vision` · `/knowledge` · `/integrations` · `/integrations/openclaw` · `/firmware` · `/federated` · `/migration` · `/colony` · `/prediction` · `/checkup` · `/maintenance` · `/diagnosis` · `/fusion` · `/control` · `/safety` · `/confidence` · `/personalization` · `/hardware` · `/spectral` · `/sensors` · `/memory` · `/voice` · `/plugin`
+**Subpath exports:** `smartplant/signals` · `/vision` · `/knowledge` · `/integrations` · `/integrations/openclaw` · `/firmware` · `/federated` · `/migration` · `/colony` · `/prediction` · `/checkup` · `/maintenance` · `/diagnosis` · `/resolutions` · `/fusion` · `/control` · `/safety` · `/confidence` · `/personalization` · `/hardware` · `/spectral` · `/sensors` · `/memory` · `/voice` · `/plugin`
 
 Runnable examples live in [`lib/examples/`](lib/examples) — all twelve work with no hardware and no API key.
 

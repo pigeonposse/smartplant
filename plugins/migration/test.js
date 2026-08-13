@@ -63,7 +63,7 @@ describe( '@smartplant/migration', () => {
 
 	it( 'installs and reports that nothing has been inherited yet', async () => {
 
-		const plant = await grow( { name : 'Solo' } )
+		const plant = await grow( { name : 'Alone' } )
 		await plant.use( plugin )
 
 		const status = plant.plugin( 'migration' ).status()
@@ -77,7 +77,7 @@ describe( '@smartplant/migration', () => {
 	it( 'bequeaths what travels and names what does not', async () => {
 
 		const plant = await grow( {
-			name : 'Vieja',
+			name : 'Elder',
 			episodes : [
 				...episodes( 'move_to_light', spots, 32, 0.7 ),
 				// 400 outcomes, all in one unchanging spot.
@@ -102,7 +102,7 @@ describe( '@smartplant/migration', () => {
 	it( 'says so plainly when nothing is transferable', async () => {
 
 		const plant = await grow( {
-			name : 'Fija',
+			name : 'Fixed',
 			episodes : episodes( 'water_early', [ spots[ 1 ] ], 300, 0.9 ),
 		} )
 		await plant.use( plugin )
@@ -141,11 +141,11 @@ describe( '@smartplant/migration', () => {
 	it( 'receives an inheritance and holds back what does not fit', async () => {
 
 		const source = await grow( {
-			name : 'Seca',
+			name : 'Dry',
 			soil : 20,
 			episodes : episodes( 'soil_early_water', spots, 30, 0.8 ),
 		} )
-		const target = await grow( { name : 'Humeda', soil : 70 } )
+		const target = await grow( { name : 'Wet', soil : 70 } )
 
 		await source.use( plugin )
 		await target.use( plugin )
@@ -219,7 +219,7 @@ describe( '@smartplant/migration', () => {
 
 	it( 'refuses to record an outcome with nothing inherited', async () => {
 
-		const plant = await grow( { name : 'Solo' } )
+		const plant = await grow( { name : 'Alone' } )
 		await plant.use( plugin )
 
 		assert.throws( () => plant.plugin( 'migration' ).outcome( 'x', 1 ), /Nothing has been inherited/ )

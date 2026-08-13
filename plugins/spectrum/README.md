@@ -35,7 +35,7 @@ import { createPlant } from 'smartplant'
 import spectrum from '@smartplant/spectrum'
 
 const plant = await createPlant( {
-  name    : 'Rosa',
+  name    : 'Ivy',
   species : 'Monstera deliciosa',
   sensor  : { driver : 'electrode', transport : 'synthetic' },  // no hardware needed
   ai      : { provider : 'ollama' },

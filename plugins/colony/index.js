@@ -41,7 +41,7 @@ export default definePlugin( {
 
 		if ( !options.transport ) {
 
-			throw new Error( 'The colony plugin needs a transport: use( colony, { transport: bus.endpoint( "rosa" ) } ). A LoopbackBus works with no radio at all.' )
+			throw new Error( 'The colony plugin needs a transport: use( colony, { transport: bus.endpoint( "ivy" ) } ). A LoopbackBus works with no radio at all.' )
 
 		}
 

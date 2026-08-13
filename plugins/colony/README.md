@@ -13,10 +13,10 @@ import { LoopbackBus } from 'smartplant/colony'
 import colony from '@smartplant/colony'
 
 const bus = new LoopbackBus()
-await rosa.use( colony, { transport : bus.endpoint( 'rosa' ) } )
-await lila.use( colony, { transport : bus.endpoint( 'lila' ) } )
+await ivy.use( colony, { transport : bus.endpoint( 'ivy' ) } )
+await hazel.use( colony, { transport : bus.endpoint( 'hazel' ) } )
 
-await rosa.plugin( 'colony' ).askPeer( 'lila', 'sense.vpd-perception' )
+await ivy.plugin( 'colony' ).askPeer( 'hazel', 'sense.vpd-perception' )
 // { ok: true, data: { vpd: 0.944, band: 'comfortable' } }
 ```
 
@@ -25,8 +25,8 @@ await rosa.plugin( 'colony' ).askPeer( 'lila', 'sense.vpd-perception' )
 The channel is **between plants**. A human watches it and never writes to it:
 
 ```js
-rosa.on( 'colony:message', line => console.log( line.from, '→', line.to, line.text ) )
-rosa.plugin( 'colony' ).transcript()   // a copy — watching is not editing
+ivy.on( 'colony:message', line => console.log( line.from, '→', line.to, line.text ) )
+ivy.plugin( 'colony' ).transcript()   // a copy — watching is not editing
 ```
 
 There is no method that takes a sentence from someone and sends it as a plant. `report()` takes no message at all: the line is composed from that plant's own readings.
@@ -38,8 +38,8 @@ This is also why the plugin declares **no persona**. Personas are the register a
 Each plant's vocabulary is derived from the drivers actually attached to it. A plant with no electrode does not report an electrical spike quietly or with low confidence — the skill is not in its vocabulary:
 
 ```
-Rosa → Lila  asks for an electrical spike
-Lila → Rosa  "I have no electrode sensor, so I cannot tell you that."
+Ivy → Hazel  asks for an electrical spike
+Hazel → Ivy  "I have no electrode sensor, so I cannot tell you that."
 ```
 
 The refusal is itself an answer: the asker learns what this neighbour is blind to. And the vocabulary grows on its own when hardware appears.
@@ -65,7 +65,7 @@ Plants in a room share a window, a radiator, a watering can and a human. Their o
 The [evidence ledger](https://github.com/pigeonposse/smartplant#-evidence) combines with noisy-OR and counts distinct sources toward corroboration. Registering five neighbours as five sources would let one observation, counted five times, walk a high-risk action through that gate.
 
 ```js
-await rosa.plugin( 'colony' ).corroborate( 'sense.vpd-perception', 'air_too_dry' )
+await ivy.plugin( 'colony' ).corroborate( 'sense.vpd-perception', 'air_too_dry' )
 // cues: [ { source: 'colony', strength: 0.35,
 //           detail: '4 neighbours agree, but they share a room — counted once' } ]
 ```
