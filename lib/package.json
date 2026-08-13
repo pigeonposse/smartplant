@@ -42,7 +42,8 @@
 		"./archetypes": "./src/archetypes/index.js",
 		"./power": "./src/power/index.js",
 		"./states": "./src/states/index.js",
-		"./navigation": "./src/navigation/index.js"
+		"./navigation": "./src/navigation/index.js",
+		"./dashboard": "./src/dashboard/index.js"
 	},
 	"bin": {
 		"smartplant": "src/cli.js"

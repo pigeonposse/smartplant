@@ -56,13 +56,13 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The eighteen layers](#the-eighteen-layers) · [Requirements](#requirements)
+- [The nineteen layers](#the-nineteen-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
 - **[What worked last time](#-what-worked-last-time)** · **[System diagnosis](#-system-diagnosis)** · **[Looking at itself](#-looking-at-itself)** · [Maintenance](#-maintenance--the-health-of-the-instrument) · **[Learning it is wrong](#-learning-it-is-wrong)** · [Knowledge transfer](#-knowledge-transfer) · [Reading the electrome](#-reading-the-electrome)
 - **[🫀 Internal states](#-internal-states--what-the-plant-is-doing)** — defence activation · internal water stress · accumulated load · stress memory · circadian integrity
-- **[📇 Capability](#-what-a-plant-tells-the-others-it-has)** · **[🔦 Beacon mode](#-beacon-mode--talking-with-light)** · **[🛡 Security priming](#-security-priming--preparing-for-a-neighbours-threat)** · **[🚜 Navigation](#-moving-a-plant-without-being-clumsy)**
+- **[🖥 Dashboard](#-open-the-plant-in-a-browser)** · **[📇 Capability](#-what-a-plant-tells-the-others-it-has)** · **[🔦 Beacon mode](#-beacon-mode--talking-with-light)** · **[🛡 Security priming](#-security-priming--preparing-for-a-neighbours-threat)** · **[🚜 Navigation](#-moving-a-plant-without-being-clumsy)**
 - **[Symbiosis](#symbiosis)** — [Fusion](#-multirate-fusion) · [Evidence](#-evidence) · [Safety](#-safety) · [Control](#-hierarchical-control) · [Personalization](#-personalization)
 - **[🔬 Spectral](#-spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
 - **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
@@ -70,7 +70,7 @@ Then it goes further than a monitor:
 
 ---
 
-## The eighteen layers
+## The nineteen layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -92,6 +92,7 @@ Then it goes further than a monitor:
 | 🔬 **Spectral** | 🔵🟢🔴 LED as a probe, not illumination | The plant is *interrogated*, not just listened to |
 | 🫀 **Internal states** | Five qualitative estimates of what the plant is *doing*, not what surrounds it | The system stops seeing only sensor numbers |
 | 🚜 **Navigation** | Constraints a robot stack cannot know, over a delegated ROS 2 planner | A pot is not a delivery robot |
+| 🖥 **Dashboard** | The plant in a browser: vitals, states, and what has no sensor | All of the above, visible without writing code |
 
 Every layer works alone. They compose.
 
@@ -1221,6 +1222,68 @@ Allelopathy and mycorrhizal transfer are real, need a shared substrate, and are 
 
 > One soil probe now speaks for two root systems drawing on it at different rates, and watering to one plant's reading waters both.
 
+## 🖥 Open the plant in a browser
+
+```js
+const server = await plant.serve()
+// open http://127.0.0.1:7777
+```
+
+No build step, no framework, and nothing fetched from anywhere — one file of HTML with the styles and script inline, served from `node:http`. Most of these run on a Raspberry Pi with no internet connection, and a CDN link would make the page blank exactly when the network is the thing that broke.
+
+| Route | |
+| --- | --- |
+| `/` | The page |
+| `/vitals.json` | The same thing as JSON — add `?deep` for the full system diagnosis |
+| `/live` | Server-sent events, pushed every few seconds |
+| `/health` | Is it up |
+
+### The gaps are the content
+
+A dashboard with four handsome gauges and no mention of the electrode that is not connected is lying by omission, and it is the exact opposite of how the rest of this library behaves. So `unknown` is a first-class value, `missing` is a top-level section, and a metric with no sensor is drawn greyed with its reason rather than left out:
+
+```
+  conductivity          —   no sensor
+  humidity           44.1   ok
+  light                 0   low
+  ph                    —   no sensor
+  soil               32.9   ok
+  temperature        20.1   ok
+
+2 metrics have no sensor. They are listed rather than hidden because a screen
+showing only what is measured cannot be told apart from a plant with nothing wrong.
+```
+
+A person should be able to tell at a glance the difference between *"this plant is fine"* and *"nothing here can see whether this plant is fine"*. On most dashboards those look identical, and they are not remotely the same situation.
+
+Internal states carry their `acts` flag through to the screen, so a state that is **not allowed to change anything** — because its evidence is too weak — does not look like one that is.
+
+### Loopback, and read-only
+
+The colony server binds to `127.0.0.1` unless told otherwise, and this does the same for a stronger reason. A colony port carries plant chatter; **this port carries a live feed of somebody's home** — when the lights go on, when the temperature drops because a window opened, and in the clearest possible terms whether anyone is in.
+
+```js
+await plant.serve( { host: '0.0.0.0' } )
+// warnings: [ 'Listening on 0.0.0.0 rather than loopback. […] There is no
+//   authentication here, because adding a password field would suggest this was
+//   built to be exposed. If this is deliberate, it is fine; if it was copied
+//   from an example, change it back.' ]
+```
+
+And it answers nothing but `GET`:
+
+```json
+{ "error": "read-only",
+  "why": "This server only answers GET. Watering, probing and moving stay in code
+          where the safety layers already gate them, and no HTTP verb reaches
+          them. A page that can water a plant is a page where a stray request
+          waters a plant." }
+```
+
+There is no `allowActions` option. Adding one later would be a deliberate act with its own authentication story, not a flag.
+
+Two smaller things that matter more than they look: a **staleness banner** appears the moment the event stream drops, because a dashboard that keeps showing the last numbers after the connection dies is the most misleading thing it can do — the plant may have been dark for hours. And `destroy()` closes the server, so a dashboard is never left holding a port after the plant it describes has gone.
+
 ## 📇 What a plant tells the others it has
 
 Until now a plant learned what a neighbour could do by asking and being refused. That works — the skill layer already answers *"I have no electrode"* rather than inventing a number — but every capability was discovered by a failed request, and no plant could **plan** around another's hardware.
@@ -2081,6 +2144,10 @@ considerAlert( plant, alert )         protocol( decision )
 // Navigation — the constraints, not the planner
 canCross( chassis, obstacle )         worthMoving( here, there, want )
 planMove( plant, move, { surveyor } ) ros2Surveyor( bridge )
+
+// The plant in a browser
+plant.serve( { port, host, everyMs } )
+snapshot( plant, { deep } )           vitals( plant )
 
 // Internal states — what the plant is doing
 plant.states()                        plant.defense()

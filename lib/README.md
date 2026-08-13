@@ -198,6 +198,7 @@ import { statusLine }    from 'smartplant/voice'
 import { definePlugin }  from 'smartplant/plugin'
 import { internalStates } from 'smartplant/states'
 import { planMove }       from 'smartplant/navigation'
+import { serveVitals }    from 'smartplant/dashboard'
 import { couplingState } from 'smartplant/colony'
 ```
 
