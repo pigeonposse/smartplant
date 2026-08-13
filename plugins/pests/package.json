@@ -1,38 +1,38 @@
 {
-  "name": "@smartplant/pests",
-  "version": "3.0.3",
-  "description": "Pest risk from environmental conditions, plus identification from symptoms.",
-  "main": "index.js",
-  "peerDependencies": {
-    "smartplant": "workspace:^"
-  },
-  "devDependencies": {
-    "smartplant": "workspace:*"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "license": "MIT",
-  "type": "module",
-  "exports": {
-    ".": "./index.js",
-    "./package.json": "./package.json"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "files": [
-    "index.js"
-  ],
-  "scripts": {
-    "test": "node --test test.js"
-  },
-  "keywords": [
-    "plant",
-    "smartplant",
-    "smartplant-plugin",
-    "AI",
-    "pests"
-  ]
+	"name": "@smartplant/pests",
+	"version": "3.0.4",
+	"description": "Pest risk from environmental conditions, plus identification from symptoms.",
+	"main": "index.js",
+	"peerDependencies": {
+		"smartplant": "workspace:^"
+	},
+	"devDependencies": {
+		"smartplant": "workspace:*"
+	},
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		".": "./index.js",
+		"./package.json": "./package.json"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"files": [
+		"index.js"
+	],
+	"scripts": {
+		"test": "node --test test.js"
+	},
+	"keywords": [
+		"plant",
+		"smartplant",
+		"smartplant-plugin",
+		"AI",
+		"pests"
+	]
 }

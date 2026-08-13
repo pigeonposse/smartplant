@@ -1,38 +1,38 @@
 {
-  "name": "@smartplant/simulator",
-  "version": "3.0.3",
-  "description": "Projects how the plant would fare under hypothetical conditions.",
-  "main": "index.js",
-  "peerDependencies": {
-    "smartplant": "workspace:^"
-  },
-  "devDependencies": {
-    "smartplant": "workspace:*"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "license": "MIT",
-  "type": "module",
-  "exports": {
-    ".": "./index.js",
-    "./package.json": "./package.json"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "files": [
-    "index.js"
-  ],
-  "scripts": {
-    "test": "node --test test.js"
-  },
-  "keywords": [
-    "plant",
-    "smartplant",
-    "smartplant-plugin",
-    "AI",
-    "simulator"
-  ]
+	"name": "@smartplant/simulator",
+	"version": "3.0.4",
+	"description": "Projects how the plant would fare under hypothetical conditions.",
+	"main": "index.js",
+	"peerDependencies": {
+		"smartplant": "workspace:^"
+	},
+	"devDependencies": {
+		"smartplant": "workspace:*"
+	},
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		".": "./index.js",
+		"./package.json": "./package.json"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"files": [
+		"index.js"
+	],
+	"scripts": {
+		"test": "node --test test.js"
+	},
+	"keywords": [
+		"plant",
+		"smartplant",
+		"smartplant-plugin",
+		"AI",
+		"simulator"
+	]
 }

@@ -1,47 +1,47 @@
 {
-  "name": "@smartplant/migration",
-  "version": "3.0.3",
-  "description": "Exports what a mature plant learned and grafts it onto a new one of the same species.",
-  "type": "module",
-  "main": "index.js",
-  "exports": {
-    ".": "./index.js",
-    "./package.json": "./package.json"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "files": [
-    "index.js"
-  ],
-  "peerDependencies": {
-    "smartplant": "workspace:^"
-  },
-  "devDependencies": {
-    "smartplant": "workspace:*"
-  },
-  "scripts": {
-    "test": "node --test test.js"
-  },
-  "keywords": [
-    "plant",
-    "smartplant",
-    "smartplant-plugin",
-    "AI",
-    "migration",
-    "inheritance",
-    "transfer-learning",
-    "priors"
-  ],
-  "author": "Alejo Malia <alejomalia@gmail.com>",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "homepage": "https://github.com/pigeonposse/smartplant",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/pigeonposse/smartplant"
-  },
-  "license": "MIT"
+	"name": "@smartplant/migration",
+	"version": "3.0.4",
+	"description": "Exports what a mature plant learned and grafts it onto a new one of the same species.",
+	"type": "module",
+	"main": "index.js",
+	"exports": {
+		".": "./index.js",
+		"./package.json": "./package.json"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"files": [
+		"index.js"
+	],
+	"peerDependencies": {
+		"smartplant": "workspace:^"
+	},
+	"devDependencies": {
+		"smartplant": "workspace:*"
+	},
+	"scripts": {
+		"test": "node --test test.js"
+	},
+	"keywords": [
+		"plant",
+		"smartplant",
+		"smartplant-plugin",
+		"AI",
+		"migration",
+		"inheritance",
+		"transfer-learning",
+		"priors"
+	],
+	"author": "Alejo Malia <alejomalia@gmail.com>",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"homepage": "https://github.com/pigeonposse/smartplant",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pigeonposse/smartplant"
+	},
+	"license": "MIT"
 }

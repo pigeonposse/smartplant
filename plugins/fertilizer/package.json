@@ -1,38 +1,38 @@
 {
-  "name": "@smartplant/fertilizer",
-  "version": "3.0.3",
-  "description": "Feeding schedule and nutrient guidance from conductivity and care history.",
-  "main": "index.js",
-  "peerDependencies": {
-    "smartplant": "workspace:^"
-  },
-  "devDependencies": {
-    "smartplant": "workspace:*"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "license": "MIT",
-  "type": "module",
-  "exports": {
-    ".": "./index.js",
-    "./package.json": "./package.json"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "files": [
-    "index.js"
-  ],
-  "scripts": {
-    "test": "node --test test.js"
-  },
-  "keywords": [
-    "plant",
-    "smartplant",
-    "smartplant-plugin",
-    "AI",
-    "fertilizer"
-  ]
+	"name": "@smartplant/fertilizer",
+	"version": "3.0.4",
+	"description": "Feeding schedule and nutrient guidance from conductivity and care history.",
+	"main": "index.js",
+	"peerDependencies": {
+		"smartplant": "workspace:^"
+	},
+	"devDependencies": {
+		"smartplant": "workspace:*"
+	},
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		".": "./index.js",
+		"./package.json": "./package.json"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"files": [
+		"index.js"
+	],
+	"scripts": {
+		"test": "node --test test.js"
+	},
+	"keywords": [
+		"plant",
+		"smartplant",
+		"smartplant-plugin",
+		"AI",
+		"fertilizer"
+	]
 }
