@@ -1,6 +1,6 @@
 {
   "name": "smartplant",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A bridge between AI and plants: pluggable sensors, persistent plant memory, multi-provider AI and a first-person plant voice.",
   "main": "src/index.js",
   "module": "src/index.js",
@@ -30,7 +30,11 @@
     "./personalization": "./src/personalization/index.js",
     "./hardware": "./src/hardware/index.js",
     "./integrations/openclaw": "./src/integrations/openclaw/index.js",
-    "./spectral": "./src/spectral/index.js"
+    "./spectral": "./src/spectral/index.js",
+    "./prediction": "./src/prediction/index.js",
+    "./checkup": "./src/checkup/index.js",
+    "./maintenance": "./src/maintenance/index.js",
+    "./diagnosis": "./src/diagnosis/index.js"
   },
   "bin": {
     "smartplant": "src/cli.js"
@@ -38,10 +42,6 @@
   "type": "module",
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-    "chalk": "5.6.2",
-    "enquirer": "2.4.1"
   },
   "peerDependencies": {
     "@serialport/parser-readline": "^13.0.0",
@@ -101,5 +101,9 @@
     "start": "node src/cli.js",
     "test": "node --test test/*.test.js"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "optionalDependencies": {
+    "chalk": "5.6.2",
+    "enquirer": "2.4.1"
+  }
 }

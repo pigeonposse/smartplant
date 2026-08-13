@@ -1,6 +1,6 @@
 {
   "name": "@smartplant/spectrum",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Probes the plant with specific wavelengths and reads the electrical response of each photoreceptor pathway.",
   "type": "module",
   "main": "index.js",

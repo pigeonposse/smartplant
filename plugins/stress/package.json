@@ -1,6 +1,6 @@
 {
   "name": "@smartplant/stress",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Detects compound and chronic stress patterns across metrics and time.",
   "main": "index.js",
   "peerDependencies": {

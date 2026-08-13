@@ -56,10 +56,11 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The twelve layers](#the-twelve-layers) · [Requirements](#requirements)
+- [The fifteen layers](#the-fifteen-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
+- **[System diagnosis](#-system-diagnosis)** · **[Looking at itself](#-looking-at-itself)** · [Maintenance](#-maintenance--the-health-of-the-instrument) · **[Learning it is wrong](#-learning-it-is-wrong)** · [Knowledge transfer](#-knowledge-transfer) · [Reading the electrome](#-reading-the-electrome)
 - **[Symbiosis](#symbiosis)** — [Fusion](#-multirate-fusion) · [Evidence](#-evidence) · [Safety](#-safety) · [Control](#-hierarchical-control) · [Personalization](#-personalization)
 - **[🔬 Spectral](#-spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
 - **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
@@ -67,7 +68,7 @@ Then it goes further than a monitor:
 
 ---
 
-## The twelve layers
+## The fifteen layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -75,7 +76,10 @@ Then it goes further than a monitor:
 | 🧬 **Signals** | Plant electrophysiology: action & variation potentials, circadian rhythm | The plant's own electrical voice |
 | 🪞 **Self-reference** | Electrome fingerprint, internal clock, two-site coherence, VPD-aware blue | Judged against itself, not a population average |
 | 🧬 **Inheritance** | Directed transfer of validated priors between individuals | A new plant starts with what the last one learned |
-| 🗨 **Colony** | Conversation between plants, with 71 skills as the fast path | They talk to each other, and only about what they measure |
+| 🗨 **Colony** | Conversation between plants, with 73 skills as the fast path | They talk to each other, and only about what they measure |
+| 🔁 **Self-correction** | Prediction error, identity drift, decaying priors, response hysteresis | The system finds out when *it* is the thing that is wrong |
+| 🩻 **Diagnosis** | One command that checks everything wired up and says what to fix | Know it works before walking away |
+| 🩺 **Self-check** | Weekly and monthly reviews, plus a technical inspection of the instrument | It watches its own trajectory, and its own sensors |
 | 👁 **Vision** | Classical phenotyping, ONNX models, PlantCV bridge | See wilting hours before you notice it |
 | 💾 **Memory** | Persistent readings, care log, species profile | Advice builds on history, not a snapshot |
 | 🧠 **Knowledge** | Ontology, forward-chaining reasoner, semantic recall | Conclusions you can audit, not just trust |
@@ -88,7 +92,7 @@ Every layer works alone. They compose.
 
 ## Requirements
 
-**Node.js 18+.** The core library has **zero runtime dependencies.** `chalk` and `enquirer` are used only by the CLI; `serialport`, `mqtt` and `onnxruntime-node` are optional peers loaded on demand; Python and ffmpeg are needed only by the tiers that use them.
+**Node.js 18+ and nothing else.** `npm i smartplant` installs **zero dependencies** — the library imports nothing outside Node itself. `chalk` and `enquirer` are *optional* and only make the CLI prettier; without them it runs in plain text and says so. `serialport`, `mqtt` and `onnxruntime-node` are optional peers loaded on demand; Python and ffmpeg are needed only by the tiers that use them.
 
 ---
 
@@ -532,16 +536,289 @@ prometheusMetrics( plant )                                    // Grafana, Alertm
 
 **Node-RED flow generation** emits a complete importable flow — MQTT inputs, threshold checks, gauges and an alert path — so a SmartPlant config becomes a working visual automation in one paste.
 
-## 🗨 Colony — plants talking to plants
+## 🩻 System diagnosis
 
-A conversation channel between plants over Bluetooth (or any transport). Two plants on the same colony can simply talk: one asks, the other answers in its own voice, from its own readings.
+You have just wired a plant: a probe in the soil, maybe an electrode, a key in a file, a lamp on a relay. Everything *looks* connected. Before walking away for a month, one command tells you whether it is — and if not, which wire.
+
+```bash
+smartplant diagnose
+```
+
+```
+System diagnosis
+
+  🟢  sensor:serial    Connected, providing temperature, humidity, soil, light.
+  🟢  reading          Read temperature 21.4, humidity 55.2, soil 38.1, light 820.
+  🔴  electrode        The trace is flat (spread 0.00000mV). Living tissue is never
+                       electrically silent — this electrode is not in contact with a plant.
+  🟢  memory           Persisting to ./rosa.json (412 readings stored).
+  🟡  ai               The mock provider returns canned text rather than reasoning.
+  ⚪  vision           No camera. Visible symptoms will not be seen.
+
+  3 working · 1 to look at · 1 broken · 1 not set up
+
+  1 thing(s) are not working: electrode. Nothing downstream of them can be
+  trusted until they are fixed.
+
+What to change
+
+  1. [electrode] A flat trace means the lead is not making contact with living
+     tissue. Reseat the electrode against damp stem or leaf tissue and run this again.
+  2. [ai] Fine for trying things out. For real answers, set a provider and key.
+```
+
+Also available as `plant.systemDiagnosis()`. It exits non-zero when something is broken, so it works in a startup script or a cron job.
+
+Two rules decide whether a check like this is useful or just noise:
+
+**Not configured is not broken.** ⚪ means you never asked for it. Telling somebody their vision system is down when they never wanted a camera is how people learn to ignore warnings. Only what you configured can fail.
+
+**Every red line ends in something to do.** "Electrode: degraded" is a fact with no next step. The same fact with the walk to the windowsill included is a fix. Every 🔴 and 🟡 carries one, and a test enforces it.
+
+It catches, among others: a probe reading values outside physical possibility (a wiring fault, not a plant in distress), a sensor that has latched onto one number, a lead not touching the plant, a sample rate too low to filter mains hum, memory that will vanish when the process ends, a provider that is configured but unreachable, a lamp with no electrode to record what it provokes, and a single electrode — which works, but can never tell a changing plant from a tiring contact.
+
+### How it differs from the other two
+
+| | Asks |
+| --- | --- |
+| 🩻 **`systemDiagnosis()`** | *Does any of this work yet?* — answerable on a plant with no history at all |
+| 🩺 [`checkup()`](#-looking-at-itself) | *How has the plant been changing?* — needs weeks of readings |
+| 🔧 [`maintenance()`](#-maintenance--the-health-of-the-instrument) | *Can the instrument still be believed?* — for a rig that has been running a while |
+
+## 🩺 Looking at itself
+
+Two reviews that run themselves. One asks how the plant has been changing; the other asks whether the things measuring it can still be believed. Neither is much use alone: a plant that looks stable through a stuck sensor is not stable, it is **unmeasured**.
 
 ```js
-import { LoopbackBus } from 'smartplant/colony'
+await plant.checkup( { period : 'weekly' } )   // or 'monthly'
+await plant.maintenance()
+await plant.runDueReviews()                     // whatever is due, nothing else
+```
 
+Both run from the monitoring loop, so a long-lived plant reviews itself without anyone remembering to ask.
+
+### The comparison has to be fair
+
+Everything else in the library lives in the present or a short window. Nothing ever sat down and compared this week with last week on purpose — and the changes worth catching are exactly the ones no single reading is remarkable enough to trigger.
+
+But the naive version of that comparison is mostly a measurement of the calendar. Days lengthen, the heating comes on, the sun moves off the windowsill. **A checkup that reports "soil is down 8%" without noticing the room is four degrees warmer has found the weather and labelled it the plant.**
+
+So every comparison carries what the conditions did over the same span, and a finding whose likely driver moved with it is marked confounded:
+
+```
+conditions moved: temperature, soil
+wellbeing: 95.8 → 76.2
+
+  ⚠️  confounded · wellbeing
+     Wellbeing fell 19.6 points over the week, but temperature and soil moved
+     too, which is enough to explain it.
+```
+
+The system is looking for what it **cannot** explain by the room, because those are the findings worth acting on. It also refuses to compare spans that are not comparable — a full week against three days would report the difference in sampling as a difference in the plant.
+
+Reviews are narrated deterministically, with no model involved, so they work offline and cannot embellish: *"Looking back over the week, I am much as I was."*
+
+## 🔧 Maintenance — the health of the instrument
+
+Every conclusion here rests on hardware that degrades. An electrode calluses over, a soil probe corrodes, a serial link drops.
+
+**The failure that matters is not the loud one.** A driver that throws gets caught and reported. The dangerous case is a component that keeps answering while being wrong — a stuck humidity sensor reads 55% all week, the plant looks stable, the VPD calculation is confident, and every layer downstream reasons beautifully about a number that stopped being a measurement days ago.
+
+```
+stuck sensor → degraded
+
+  mock [degraded]
+     humidity: The last 28 readings are all exactly 55. A real measurement moves
+     in its last digit even in a still room; this sensor has latched.
+
+what to do about it:
+  · Sensor "mock" is unreliable; readings from it should be treated as suspect.
+
+suggested evidence weights: { "mock": 0.25 }
+```
+
+| Checked | How it is caught |
+| --- | --- |
+| **Stuck sensor** | Exact equality, repeated. A stable room still moves the last digit; a latched sensor does not |
+| **Impossible readings** | Values outside what the metric can physically be |
+| **Flat electrode** | Living tissue is never electrically silent, so silence is the wire, not a calm plant |
+| **Mains hum** | Power still at 50/60 Hz after filtering — grounding, not physiology |
+| **Aliased sampling** | A rate at or below 2× mains folds the hum *down into* the plant's own band, wearing a plausible frequency |
+| **Saturation** | An amplifier pinned at its rail reports numbers without measuring |
+| **Tiring contact** | Reuses the [continuity](#-continuity-and-the-electrode-problem) verdict rather than inventing a second opinion |
+| **Driver failures** | Consecutive and proportional failure rates per driver |
+| **Memory** | Readings out of chronological order break every window and trend computed from them |
+| **Colony link** | Neighbours that were reachable and no longer are |
+| **Body** | Safety limits refused repeatedly — the layer above keeps asking for what it cannot have |
+
+Nothing is quietly discarded. A component judged unreliable is **marked** unreliable, its suggested evidence weight drops, and the reason is stated — because silently dropping a sensor is its own way of being wrong without saying so. Faults are filed as claims about the *instrument* (`instrument_unreliable`), so a conclusion can be discounted when the thing that produced it is broken.
+
+## 🔁 Learning it is wrong
+
+Everything above measures the plant. This measures the system's **grip** on the plant — the ways it can find out that what it believes is not holding up.
+
+### The two numbers nobody was subtracting
+
+The learning loop already asked whether an action *worked*. It never asked whether the result was the one it **expected**. Those are different questions, and only the second can tell the system its model is wrong: an action can keep producing good outcomes for reasons the model has completely backwards.
+
+`suggest()` produced an `expected`. `outcome()` produced a `reward`. They existed twenty lines apart and nothing ever compared them.
+
+```js
+const { reward, prediction, calibration } = await learner.outcome( ctx )
+
+calibration.verdict
+// '"move_to_light" keeps doing less than the model expects — over 12 predictions
+//  it overestimates by 0.650 on average. The estimate should come down;
+//  the plant is not failing to cooperate.'
+```
+
+It is tempting to read a plant that keeps contradicting its model as **resisting** — sabotaging the system, having preferences of its own. That framing is wrong and it is dangerous. A plant has no model of the system and cannot form an intention to thwart it. Call it resistance and the natural response is to suppress it; call it prediction error and the natural response is to fix the model. Same measurement, opposite conclusions.
+
+Bias is separated from noise, because the fixes differ: **optimistic** or **pessimistic** means shift the estimate, **noisy** means something that actually drives the outcome is missing from the context the model sees.
+
+### 📉 Continuity, and the electrode problem
+
+`ElectromeBaseline` asks "has something changed since recently?" — a rolling median. That is right for an event and wrong for slow change, because a baseline that follows the plant will follow it anywhere. A signature can walk a long way over three months while every step sits inside recent normal. The frog does not notice the water.
+
+So continuity is measured against an **anchor** fixed once, at settling, that does not move.
+
+**The confound that makes this hard:** an electrode ages. Contact impedance shifts, a callus forms over weeks, gel dries, oxide builds. Every one produces slow, coherent, monotonic change — indistinguishable from a plant reorganising itself, if you only look at one electrode. Over the months where drift is worth measuring, the electrode is the *more likely* explanation.
+
+The discriminator is physical: **the plant is shared between electrodes and a contact is not.**
+
+| Situation | Verdict |
+| --- | --- |
+| One electrode drifting | ⚠️ **unattributable** — and it says so instead of guessing |
+| Two electrodes, one drifts | 🔌 **electrode** — the plant is common to both |
+| Two electrodes, both drift the same way | 🌱 **physiology** — independent contacts do not fail in step |
+
+Electrode drift is filed as a claim about the *hardware*, not the plant.
+
+### ⏳ Inheritance that fades whether or not it is tested
+
+An inherited prior used to shrink only as local outcomes accumulated. A prior nobody ever put to the question kept **full weight forever**, outranking policies the plant had actually confirmed for itself.
+
+```
+  0 days later → weight 0.6
+ 60 days later → weight 0.3
+240 days later → weight 0.037
+```
+
+Belief that is never examined should get quieter, not louder. Migration is also **selective** now — `only: [ 'ranges' ]`, `except: [ 'policies' ]` — so watering habits and light response no longer travel together just because they shared an envelope.
+
+### 🔄 Hysteresis — does the same question still get the same answer?
+
+Stress memory, or priming: a plant that has been through a drought often shuts its stomata faster the next time, and one that has been shaded reaches differently for light. **The response function itself changes with history.**
+
+```js
+hysteresis( responseHistory( readings, events, 'water' ), episodeDate )
+// { changed: true, direction: 'faster',
+//   verdict: 'The plant answers the same stimulus differently since the episode…' }
+```
+
+This is deliberately **not** called an epigenetic readout. Nothing here touches methylation or chromatin, and no electrode can infer them. What is measured is behavioural and electrical, and it stands under its own name.
+
+The confounds are the whole difficulty, so occurrences are only compared when they started from **comparable conditions**:
+
+```
+same conditions, faster uptake       → changed: true (faster)
+same change, but the weather too     → known: false
+   'The stimulus never recurred under comparable conditions after the episode,
+    so any difference in response could just as easily be the difference in
+    conditions. Nothing can be concluded.'
+```
+
+And the one confound that cannot be excluded is stated in the result rather than buried: *a plant is older and larger at the second measurement than the first.*
+
+## 🎓 Knowledge transfer
+
+A plant that has been in a room long enough to know it notices a newcomer that has not, and offers what it has learned about **this place**.
+
+```js
+await vieja.colony.newcomers()      // who has not been here long
+await vieja.colony.teach( 'nueva' ) // offer what the room does
+await nueva.colony.learnFromColony()
+```
+
+This replaced an earlier idea — succession, where a plant's knowledge is distributed when it dies. That framing had a fatal flaw: **the trigger is undecidable.** A dormant plant, a dead plant and a disconnected electrode look very similar electrically, and a false positive means distributing the estate of a plant that is merely asleep. "Has little local experience" is directly measurable, and being wrong about it is harmless — teach a plant that already knew, and its own evidence outweighs the lesson anyway.
+
+What transfers is **knowledge of the room** (ranges, cadence, rhythm), not learned action policies, which are about the individual and its pot.
+
+And several teachers become **one** lesson:
+
+```
+'3 neighbours contributed, but they share a room and are not independent
+ witnesses to it. Merged into one lesson (agreement 0.934) rather than
+ counted 3 times.'
+```
+
+## 🧪 Reading the electrome
+
+Three mechanics from the electrome literature, each shipped at the size the evidence actually supports.
+
+### 🏷 Intervention signatures — labels nobody had to be asked for
+
+The published stress classifiers reach high accuracy on **labelled data**, inside one experiment, on plants somebody deliberately stressed in a known way. That is the part that does not survive contact with a houseplant: nobody at home can say "this window was salinity", and a model pre-trained on someone else's greenhouse would be confidently wrong about your ficus.
+
+But the labels are not missing. **Every watering and feeding is already in the care log with a timestamp.** So instead of classifying stress the plant might be under, this learns the signature of things known to have been done to it:
+
+```js
+await plant.learnInterventions()
+// 'Characterised 4 of 4 logged interventions from the electrode buffer.'
+
+plant.interventions.identify( samples, rate )
+// { match: 'water', confidence: 0.82 }
+```
+
+An intervention whose own occurrences look nothing alike has no signature, and is reported as unreliable rather than averaged into a shape none of them has. Two equally close candidates are reported as a tie, not resolved by picking one.
+
+### 📊 Regime change
+
+Not "does this window depart from normal" but "is there a **point in the record** on either side of which the plant behaves like two different systems".
+
+The temptation is to promise lead time — *detects drought three days before wilting*. Nobody can promise that here; the published lead times come from deliberately stressed plants under instrumentation nobody has at home. This reports that the regime changed and when. Whether it precedes anything in **your** plant is something only your plant can eventually tell you.
+
+### 🏘 Collective state
+
+A colony-level signature is **not** evidence that plants influence each other — they share a window, a radiator and a watering can, and that explains nearly every correlation you will see. Reading coordinated change as communication is the easiest mistake here, and it is unfalsifiable without a sensor for the supposed channel.
+
+The opposite inference is sound: several independent plants shifting at once is strong evidence of a **shared environmental event**, caught more sensitively than any one of them could manage. *One plant changing is a plant. Every plant changing is the room.*
+
+### 🦠 Early infection — the one inference that earns two modalities
+
+A drop in electrical complexity and the first yellowing seen by a camera **do not share a failure mode**: a bad electrode causes no chlorosis, and a white-balance error lowers no entropy. When both move together they really are two witnesses.
+
+It reports; it does not act. Isolation and treatment are physical and expensive to get wrong, so they stay behind the risk gates — an automatic quarantine on a false positive is worse than a late true one. And if the electrical half is a single drifting electrode, the whole thing is refused.
+
+### ⏱ Fresh data for anything that acts
+
+Blue light forces stomata open, so the point of gating it on VPD and soil is knowing what the plant faces **now**. The contraindications already refused *absent* data; a three-hour-old reading is worse than absent, because it looks like knowledge. Stale readings are now treated as no readings.
+
+```
+  1 min → allows
+ 45 min → 'The readings gating this treatment are 45 minutes old, and a
+           treatment that forces a physiological response has to be decided
+           on current conditions. Take a reading first.'
+```
+
+Probes are unaffected: reading the stomata does not force them.
+
+## 🗨 Colony — plants talking to plants
+
+A conversation channel between plants over a network socket, an in-process bus, or any transport you implement. Two plants on the same colony can simply talk: one asks, the other answers in its own voice, from its own readings.
+
+```js
+import { LoopbackBus, ColonyServer, ColonyClient } from 'smartplant/colony'
+
+// Same process — two plants on one Raspberry Pi.
 const bus = new LoopbackBus()
 await rosa.joinColony( { transport : bus.endpoint( 'rosa' ) } )
 await lila.joinColony( { transport : bus.endpoint( 'lila' ) } )
+
+// Different machines — plain TCP, no broker, no dependencies.
+const server = new ColonyServer( { id : 'rosa' } )           // binds loopback by default
+await rosa.joinColony( { transport : server } )
+await lila.joinColony( { transport : new ColonyClient( { id : 'lila', port : server.port } ) } )
 
 // `report()` takes no message: Rosa says how Rosa is, from Rosa's own readings.
 await rosa.colony.report( { to : 'lila' } )
@@ -565,7 +842,7 @@ await rosa.colony.ask( 'lila', 'sense.vpd-perception' )
 //   data: { vpd: 0.944, band: 'comfortable' } }
 ```
 
-**71 skills in seven families**, and the catalogue is open — `registerSkill()` adds your own.
+**73 skills in seven families**, and the catalogue is open — `registerSkill()` adds your own.
 
 | Family | What it is for |
 | --- | --- |
@@ -1035,7 +1312,7 @@ Full example: [`lib/examples/06-spectral-probe.js`](lib/examples/06-spectral-pro
 ## 🔎 Hardware autodetection
 
 ```bash
-smartplant hardware
+smartplant diagnose
 ```
 
 ```
@@ -1293,8 +1570,23 @@ plant.remember( note )                plant.recall( query, opts )
 
 // Colony
 plant.joinColony( { transport } )     plant.leaveColony()
+plant.colony.enabled                  // false until you join
 plant.colony.report( { to } )         plant.colony.ask( peer, skill )
 plant.colony.askAll( skill )          plant.colony.lexicon
+plant.colony.newcomers()              plant.colony.teach( peer )
+plant.colony.learnFromColony()
+
+// Looking at itself
+plant.systemDiagnosis( opts )         plant.checkup( { period } )
+plant.maintenance()
+plant.runDueReviews()
+
+// Learning it is wrong
+plant.body.personalization.predictions.report()
+new ContinuityTracker().attribute()   hysteresis( history, episode )
+plant.learnInterventions( opts )      plant.interventions.identify( samples, rate )
+regimeChange( history )               collectiveState( members )
+collectiveShift( before, after )      infectionWatch( signals )
 
 // Inheritance
 plant.exportInheritance( opts )       plant.inherit( bundle, opts )
@@ -1313,9 +1605,9 @@ plant.init()    plant.startMonitoring()   plant.stopMonitoring()   plant.destroy
 plant.use( plugin )   plant.plugin( name )   plant.on( event, fn )
 ```
 
-**Subpath exports:** `smartplant/signals` · `/vision` · `/knowledge` · `/integrations` · `/integrations/openclaw` · `/firmware` · `/federated` · `/migration` · `/colony` · `/fusion` · `/control` · `/safety` · `/confidence` · `/personalization` · `/hardware` · `/spectral` · `/sensors` · `/memory` · `/voice` · `/plugin`
+**Subpath exports:** `smartplant/signals` · `/vision` · `/knowledge` · `/integrations` · `/integrations/openclaw` · `/firmware` · `/federated` · `/migration` · `/colony` · `/prediction` · `/checkup` · `/maintenance` · `/diagnosis` · `/fusion` · `/control` · `/safety` · `/confidence` · `/personalization` · `/hardware` · `/spectral` · `/sensors` · `/memory` · `/voice` · `/plugin`
 
-Runnable examples live in [`lib/examples/`](lib/examples) — all ten work with no hardware and no API key.
+Runnable examples live in [`lib/examples/`](lib/examples) — all twelve work with no hardware and no API key.
 
 ## Migrating from 1.x
 

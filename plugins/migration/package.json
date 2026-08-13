@@ -1,6 +1,6 @@
 {
   "name": "@smartplant/migration",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Exports what a mature plant learned and grafts it onto a new one of the same species.",
   "type": "module",
   "main": "index.js",

@@ -1,6 +1,6 @@
 # 🗨 @smartplant/colony
 
-A conversation channel between plants, over Bluetooth or any transport.
+A conversation channel between plants, over a network socket, an in-process bus, or any transport you implement.
 
 Two plants in the same colony talk to each other: one asks, the other answers in its own voice, from its own readings. **Skills** are the fast path — a named request that returns the fact itself instead of a sentence.
 
@@ -87,7 +87,12 @@ One cue, always, with strength set by agreement and saturating with crowd size.
 
 `askPeer` rather than `ask` because every plugin already has an `ask()` that puts a question to the AI. This one crosses the colony.
 
-`LoopbackBus` is a real in-process transport, so a colony is fully testable with no radio — two plants on one Raspberry Pi legitimately use it. A Bluetooth transport is the same three methods over a characteristic.
+Two transports ship, and both are real:
+
+- **`LoopbackBus`** — in-process. Two plants on one Raspberry Pi legitimately use it, and it makes a colony fully testable with no network at all.
+- **`ColonyServer` / `ColonyClient`** — plain TCP with newline-delimited JSON. No broker, no dependencies. One node listens, the others dial in, and it relays between peers that cannot see each other directly. It binds loopback by default: a colony is a private conversation between your own plants, and putting it on the network should be something you ask for.
+
+Any other transport is the same three methods — `send`, `onMessage`, `peers`. A Bluetooth transport would implement them over a characteristic; **one does not ship**, because it needs a native dependency this library cannot test without radios in the room.
 
 ## License
 
