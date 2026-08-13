@@ -196,6 +196,8 @@ import { SerialSensor }  from 'smartplant/sensors/serial'
 import { MqttSensor }    from 'smartplant/sensors/mqtt'
 import { statusLine }    from 'smartplant/voice'
 import { definePlugin }  from 'smartplant/plugin'
+import { internalStates } from 'smartplant/states'
+import { couplingState } from 'smartplant/colony'
 ```
 
 ## Migrating from 1.x

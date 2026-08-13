@@ -56,11 +56,12 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The sixteen layers](#the-sixteen-layers) · [Requirements](#requirements)
+- [The seventeen layers](#the-seventeen-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
 - **[What worked last time](#-what-worked-last-time)** · **[System diagnosis](#-system-diagnosis)** · **[Looking at itself](#-looking-at-itself)** · [Maintenance](#-maintenance--the-health-of-the-instrument) · **[Learning it is wrong](#-learning-it-is-wrong)** · [Knowledge transfer](#-knowledge-transfer) · [Reading the electrome](#-reading-the-electrome)
+- **[🫀 Internal states](#-internal-states--what-the-plant-is-doing)** — defence activation · internal water stress · accumulated load · stress memory · circadian integrity
 - **[Symbiosis](#symbiosis)** — [Fusion](#-multirate-fusion) · [Evidence](#-evidence) · [Safety](#-safety) · [Control](#-hierarchical-control) · [Personalization](#-personalization)
 - **[🔬 Spectral](#-spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
 - **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
@@ -68,7 +69,7 @@ Then it goes further than a monitor:
 
 ---
 
-## The sixteen layers
+## The seventeen layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -88,6 +89,7 @@ Then it goes further than a monitor:
 | 🗣 **Voice** | Five first-person personas, emoji scales, ten languages | It talks to you, it doesn't report at you |
 | 🦿 **Body** | Multirate fusion, reflexes, safety limits, personalization | Autonomy that cannot kill the plant — see [Symbiosis](#symbiosis) |
 | 🔬 **Spectral** | 🔵🟢🔴 LED as a probe, not illumination | The plant is *interrogated*, not just listened to |
+| 🫀 **Internal states** | Five qualitative estimates of what the plant is *doing*, not what surrounds it | The system stops seeing only sensor numbers |
 
 Every layer works alone. They compose.
 
@@ -878,6 +880,146 @@ Blue light forces stomata open, so the point of gating it on VPD and soil is kno
 
 Probes are unaffected: reading the stomata does not force them.
 
+## 🫀 Internal states — what the plant is *doing*
+
+Every other layer here reads the environment and reasons about it. These read the **plant**: five qualitative estimates of physiological state, each built only from measured signals, each carrying the evidence that raised it.
+
+```js
+const states = plant.states()
+// {
+//   defense_activation    : { level: 'high',    confidence: 'high',   acts: true,  … },
+//   water_stress_internal : { level: 'high',    confidence: 'medium', acts: true,  … },
+//   stress_load           : { level: 'medium',  confidence: 'medium', acts: true,  … },
+//   stress_memory         : { level: 'unknown', confidence: 'low',    acts: false, … },
+//   circadian_integrity   : { level: 'low',     confidence: 'medium', acts: false, … },
+// }
+```
+
+### The rule that decided what exists
+
+**A state is only worth creating if it changes a decision.** Not if it is interesting, not if it sounds sophisticated. If the system would behave identically with and without it, it is decoration — and decoration in a system people trust with a living thing is worse than nothing, because it buys credibility it did not earn.
+
+So every state declares a `decides` field naming what changes, and **a test fails if one ships without it**.
+
+### Confidence is not an annotation. It bites.
+
+Low confidence does not merely label a state — it removes its authority:
+
+```js
+state.acts   // false whenever confidence is low, the level is unknown, or the level is low
+```
+
+Every gate in this library checks `acts`, never `level`. A weak signal can inform a person; it cannot change what the system does.
+
+### The five
+
+| State | Anchored in | What it decides |
+| --- | --- | --- |
+| `defense_activation` | Variation potentials, electrome shift, visible damage, logged wounding | Elective actions — probes, experiments, aid, relocation |
+| `water_stress_internal` | Disagreement between the soil probe and the plant | Whether watering happens |
+| `stress_load` | Event rate, physiology-attributed drift, repeated episodes | Intervention size |
+| `stress_memory` | Measured hysteresis either side of an episode | Which response profile to predict from |
+| `circadian_integrity` | Electrome rhythm against the light cycle | Whether the system trusts its own timing advice |
+
+### 🛡 Defence activation — and what it refuses to claim
+
+Wound a plant and a well-described cascade follows: a variation potential spreads from the damage, jasmonic acid accumulates, methyl jasmonate goes volatile, and neighbours taking it up through their stomata raise their own defences before anything has touched them.
+
+**This does not measure methyl jasmonate.** That needs mass spectrometry; this library has an electrode, a camera and some environmental sensors. Any number presented here as a hormone concentration would be invented.
+
+What *is* available is the electrical half of the same cascade — and the distinction is not pedantry:
+
+> `"MeJA is high"` is a claim about chemistry that would be false.
+> `"This plant is behaving as if it has been wounded, and the weather does not explain it"` is a claim the instruments support.
+
+Two rules carry the weight.
+
+**Absent is not low.** The variation potential is the primary evidence. Without an electrode, a plant being eaten right now looks identical to a calm one — so a missing instrument returns `unknown`, and `low` is returned *only* when the thing that would have shown activation was watching and saw none.
+
+**The negative control can lower the answer**, and it is the only thing here that can. Cold shock, a light change and a knock all produce variation potentials, so a system that counted them would spend its life announcing attacks on a plant nobody has touched:
+
+| Evidence | Room | Result |
+| --- | --- | --- |
+| VP + electrome shift | steady | `medium` |
+| VP + electrome shift | temperature dropped 6 °C | **`low`** ← lowered from medium |
+| VP + electrome shift + visible chewing | temperature dropped 6 °C | `high` — a draught does not chew holes in a leaf |
+
+Level and confidence move independently. Two electrical signals are **one instrument agreeing with itself** and cannot reach `high` alone; that needs a second modality.
+
+`posture()` is deliberately about *restraint* rather than action — there is nothing useful to do to a plant mounting a defence, and the value is in not adding to it:
+
+```js
+await plant.interrogate()
+// { refused: true, defense: 'high',
+//   why: 'Not probing. Estimated activation of the defence pathway (jasmonate
+//         signalling likely): high. … Pass { force: true } to override, which is
+//         reasonable if you need the reading more than the plant needs to be
+//         left alone.' }
+```
+
+A defending plant also will not be volunteered to help a neighbour. Ordinary care continues throughout.
+
+### 💧 Internal water stress — when watering is the wrong answer
+
+The soil probe answers a question about **the pot**. Whether the plant is getting water is a different question, and the two come apart in exactly the cases that matter most: rotted roots cannot drink from wet soil, a root-bound plant runs dry hours after the probe says it is fine, and a plant in high VPD loses water faster than roots can supply it however wet the pot.
+
+Every one of those looks like thirst. None is fixed by watering. The worst is made **worse** by it.
+
+```js
+await plant.water()
+// { refused: true, state: 'water_stress_internal', level: 'high',
+//   evidence: [ { signal: 'soil', detail: 'Soil is at 85, which is not short of water.' },
+//               { signal: 'stomatal-closure', … },
+//               { signal: 'electrome-shift', … } ],
+//   why: 'The pot is wet and the plant is behaving as though it is not getting
+//         water. … Pass { force: true } to water anyway.' }
+```
+
+It fires **only on disagreement**. Soil dry and plant stressed is ordinary thirst — agreement is not a state, it is a reading. And one plant-side signal is not enough to withhold water: the state exists, and `acts` is false.
+
+### 🪫 Accumulated load — and the drift that does not count
+
+A single episode is an event. Several in a row, without the plant returning to its own baseline between them, is a different situation: the capacity to absorb the next one is lower.
+
+The important refusal is in the middle. Baseline drift is the most common artefact in plant electrophysiology — an electrode dries out or loses contact and produces a slow wander that looks exactly like a plant declining. So drift counts **only** when the [continuity tracker](#-continuity-and-the-electrode-problem) attributed it to physiology across multiple sites:
+
+```js
+{ signal : 'drift-discounted',
+  detail : 'Baseline drift was found and attributed to electrode, so it is not
+            counted as accumulated stress. An ageing electrode produces exactly
+            this pattern and it is not a fact about the plant.' }
+```
+
+Discounted out loud, not silently dropped. High load scales interventions to `0.6` rather than blocking them.
+
+### 🧠 Stress memory — capped at medium forever
+
+Delegated entirely to [`hysteresis()`](#-hysteresis--does-the-same-question-still-get-the-same-answer), which already refuses on mismatched conditions. It can never exceed `medium`, and the reason travels *with* the state instead of being left behind:
+
+> A plant is older and larger at the second measurement than the first. Growth changes the response too, and no reading in this record can separate that from memory.
+
+A negative result is reported as a real finding, not an absence of one — the old response profile can still be trusted.
+
+### 🕐 Circadian integrity — the useful inversion
+
+Everywhere else in this library a degraded signal means the plant needs attention. Here it *also* means **the system should trust itself less**.
+
+Timing advice ("wait four hours, the plant is in its rest phase") is derived from the rhythm estimate. When the rhythm is weak, that advice is noise presented as insight — so `goodMoment()` declines to give an opinion rather than handing back a confident hour from a clock that is not keeping one:
+
+```js
+await plant.goodMoment( 'probe' )
+// { good: true, trusted: false,
+//   reason: 'No timing opinion offered. The rhythm has weakened to 0.15. …
+//            Proceeding on the caller's schedule rather than on a clock that is
+//            not keeping one.' }
+```
+
+It also separates two very different problems: a **weak** rhythm is the plant, a **strong but off-period** one is the timer. One is fixed by hardware nobody has to worry about; the other is not.
+
+### What is deliberately absent
+
+Abscisic acid, ethylene, salicylic acid, cytokinins. All real, all central to plant physiology, **none anchored to anything this library measures**. Estimating them would mean inventing the link, and an invented link is precisely the failure these rules exist to prevent.
+
 ## 🗨 Colony — plants talking to plants
 
 A conversation channel between plants over a network socket, an in-process bus, or any transport you implement. Two plants on the same colony can simply talk: one asks, the other answers in its own voice, from its own readings.
@@ -958,6 +1100,124 @@ ColonyMember.cuesFrom( answers, 'air_too_dry' )
 // [ { claim: 'air_too_dry', source: 'colony', strength: 0.35,
 //     detail: '2 neighbours agree, but they share a room — counted once, not 2 times' } ]
 ```
+
+### 🤝 Doing something, not just saying something
+
+Everything above is talk. This is the layer where a plant on wheels moves aside so a neighbour gets the window, or stands between it and a draught.
+
+It is also the layer with the most ways to do harm, so most of the code is refusal.
+
+**Light turned out to be the least representative kind of help** — it is the only one that *accumulates*. Shade, shelter, warmth and getting out of the way deliver no total at all; they hold a condition for as long as it is needed. A session that counted "lux-seconds of shade" would stop at an arbitrary moment having learned nothing.
+
+So each kind declares what it changes and how:
+
+| Aid | Metric | Mode | Direction |
+| --- | --- | --- | --- |
+| `light` | light | **accumulate** | ↑ |
+| `shade` | light | sustain | ↓ |
+| `move-aside` / `yield-spot` | light | sustain | ↑ |
+| `warmth` | temperature | sustain | ↑ |
+| `shelter` / `windbreak` | airflow | sustain | ↓ |
+| `huddle` | humidity | sustain | ↑ |
+
+The session integrates only in accumulate mode; in sustain mode it tracks presence and duration, and **drops the held clock when the effect lapses** rather than keeping credit for it.
+
+### The check that generalises furthest
+
+A plant being helped **has its own sensors**. So the helper's claim is never taken on trust:
+
+```js
+const session = await plant.colony.openAidSession( 'willow', { kind: AID.SHADE } )
+await plant.colony.streamAid( session.id )
+// { stop: true, because: 'no-delivery',
+//   why: "The helper reports acting and this plant's light has not moved down in
+//         25s. Whatever is being done is not reaching this plant — wrong position,
+//         something in between, or it never started. Stopping: a session that
+//         delivers nothing is worse than none, because it looks like help." }
+```
+
+An earlier version of this booked light in a ledger so a shared dose could not be delivered twice. That was the wrong shape: bookkeeping was a workaround for a measurement that was available all along.
+
+### Approaching is how disease travels
+
+Mites walk. Spores fall. Every form of aid involving proximity is also the transmission route, so it is gated hardest — in **both** directions, because either plant can be the source. And "no sign" is not "clear": a plant with no camera cannot rule out an infestation it has no way to see. Unknown blocks.
+
+## 🫧 Two plants close together stop being two plants
+
+The aid layer *creates* proximity, and then said nothing about it. A plant that rolls over to shelter a neighbour has also raised the humidity in the gap, cut the other's red:far-red, and started drawing on the same CO₂.
+
+Within 0.4 m, boundary layers overlap and the pair becomes one coupled system with two sets of instruments in it.
+
+```js
+const state = await plant.colony.coupling(
+  { reading: neighbour, metres: 0.25 },
+  roomSensor,  // ← the part that matters
+)
+```
+
+### Some of it helps and some of it costs
+
+In still, dry, warm air the pairing is genuinely good for both: shared transpiration lifts humidity in the gap, VPD falls, stomata stay open longer, and evaporative cooling is shared. It is why grouped houseplants do better than scattered ones.
+
+In **stagnant** air at peak light it inverts. Two plants photosynthesising into air nobody is stirring pull the local CO₂ down faster than it is replaced, and both fix less than either would alone.
+
+Same arrangement, opposite sign, decided by airflow. So proximity is never scored as good or bad here — only against the conditions, and not at all when the conditions are not instrumented. The conclusion is never "separate them":
+
+> *Being this close is measurably costing these two: co2-depletion. That is not an argument for separating them on its own — it is an argument for moving the air.*
+
+### The reference problem
+
+Most of the care in this module went here. **Two neighbours both reading 68% humidity is not evidence of a shared humid pocket.** It is equally consistent with a humid room.
+
+To claim the pocket exists you need a reading from *outside* it. Without one, every benefit returns `observed: null` — unverifiable, not absent:
+
+```js
+// no room sensor
+{ observed: null,
+  why: 'Both plants can be read, but there is no reading from outside the pair.
+        Two plants reporting the same humidity is exactly what a humid room looks
+        like…' }
+```
+
+And the whole-picture verdict distinguishes the two cases that are easy to confuse:
+
+> *Nothing about this pairing is measurable with what is instrumented. 5 effects could not be assessed, **which is not the same as the pairing doing nothing**.*
+
+### 🫂 Huddling — the only aid where nobody spends anything
+
+Every other kind has a giver and a receiver. Standing close enough to share a humid pocket is not like that: the humidity each adds is breathed by both. It is also the only kind that can leave **both** worse off, so it is the only one gated on conditions rather than on plants:
+
+```
+MIDDAY, STILL AIR : Not now. Airflow is 0.04 m/s and light is 15000 […]
+                    the arrangement is fine, the timing is not.
+AFTER DARK        : Able to offer huddle.
+```
+
+One deliberate exception to this library's usual doctrine: **unknown airflow does not block.** Everywhere else a missing reading hides a hazard; here it hides a mild, reversible inefficiency fixed by opening a window, and refusing every huddle in rooms without an anemometer would refuse nearly all of them. It is flagged, not blocked.
+
+### 🚨 Priming — and what it honestly is
+
+Plants really do prime each other with volatiles: methyl jasmonate from a plant under attack, taken up through a neighbour's stomata, raising its defences before anything touches it. It is well established.
+
+**Nothing here can smell it.** That needs gas chromatography, not a DHT22. So the colony channel carries the warning instead — labelled a substitute, never dressed as the real thing:
+
+```js
+await sick.colony.warnNeighbours( { near: { willow: 0.25 } } )
+// well.colony.primed
+// { prime: true, inspectWithin: 6, from: 'ivy',
+//   why: 'Raising inspection to within 6h. Nothing has been found on this plant —
+//         that is the point of priming, and it is why the response is to look
+//         sooner rather than to treat. Treating on a neighbour's finding would be
+//         dosing a plant for a problem it may not have.' }
+```
+
+It goes out on **suspicion**, not confirmation — the opposite of how the rest of this library treats uncertain findings. The asymmetry is deliberate: a false alarm costs a few unnecessary inspections; a missed one costs a room. And a plant with no camera will not warn anyone about something it cannot see, because a warning it cannot substantiate trains everyone to ignore the next one.
+
+### The shared pot
+
+Allelopathy and mycorrhizal transfer are real, need a shared substrate, and are invisible to every sensor here — so they appear only as configuration-time notes, never as a runtime claim. The one consequence of a shared pot that *is* measurable:
+
+> One soil probe now speaks for two root systems drawing on it at different rates, and watering to one plant's reading waters both.
 
 ## 🧬 Inheritance between plants
 
@@ -1650,6 +1910,17 @@ plant.colony.report( { to } )         plant.colony.ask( peer, skill )
 plant.colony.askAll( skill )          plant.colony.lexicon
 plant.colony.newcomers()              plant.colony.teach( peer )
 plant.colony.learnFromColony()
+
+// Colony: doing something, not just saying it
+plant.colony.openAidSession( peer, { kind, target } )
+plant.colony.streamAid( id, { target, satisfied } )
+plant.colony.coupling( { reading, metres }, reference )
+plant.colony.warnNeighbours( { near } )
+plant.colony.primed                   canOffer( plant, AID.HUDDLE )
+
+// Internal states — what the plant is doing
+plant.states()                        plant.defense()
+// → { level, confidence, acts, evidence[], decides, why }
 
 // Experience
 plant.whatWorkedBefore( problem )     plant.resolutions.report()
