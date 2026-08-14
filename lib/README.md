@@ -199,6 +199,7 @@ import { definePlugin }  from 'smartplant/plugin'
 import { internalStates } from 'smartplant/states'
 import { planMove }       from 'smartplant/navigation'
 import { serveVitals }    from 'smartplant/dashboard'
+import { readSpace }      from 'smartplant/spatial'
 import { couplingState } from 'smartplant/colony'
 ```
 

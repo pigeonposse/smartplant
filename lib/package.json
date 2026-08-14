@@ -10,6 +10,7 @@
 		"./sensors/serial": "./src/sensors/drivers/serial.js",
 		"./sensors/mqtt": "./src/sensors/drivers/mqtt.js",
 		"./sensors/electrode": "./src/sensors/drivers/electrode.js",
+		"./sensors/presence": "./src/sensors/drivers/presence.js",
 		"./memory": "./src/memory/store.js",
 		"./voice": "./src/voice/persona.js",
 		"./plugin": "./src/plugin.js",
@@ -44,6 +45,7 @@
 		"./power": "./src/power/index.js",
 		"./states": "./src/states/index.js",
 		"./navigation": "./src/navigation/index.js",
+		"./spatial": "./src/spatial/index.js",
 		"./dashboard": "./src/dashboard/index.js"
 	},
 	"bin": {
@@ -109,7 +111,10 @@
 	"scripts": {
 		"dev": "node src/cli.js",
 		"start": "node src/cli.js",
-		"test": "node --test test/*.test.js"
+		"test": "node --test test/*.test.js",
+		"mock": "node scripts/mock.mjs",
+		"wired": "node --expose-gc scripts/wired.mjs",
+		"check": "node --run test && node --run mock && node --run wired"
 	},
 	"license": "MIT",
 	"optionalDependencies": {

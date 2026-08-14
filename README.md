@@ -49,28 +49,28 @@ Then it goes further than a monitor:
 - 🧬 It reads the plant's **own electrical signals** — and can tell "something touched me" from "something is damaging me"
 - 🧠 It reasons **symbolically**, so every conclusion carries the readings that produced it
 - 🦿 It can be given a **body** that moves the plant, under limits no model can talk past — see [Symbiosis](#symbiosis)
-- 🔬 It **interrogates** the plant with 🔵🟢🔴 light, separating thirst from malnutrition — see [Spectral](#-spectral-light-as-an-instrument)
-- 🦞 It can be **run by an agent** through [OpenClaw](#-openclaw-the-plants-brain) — AI with no API key, gated by the safety layers
+- 🔬 It **interrogates** the plant with 🔵🟢🔴 light, separating thirst from malnutrition — see [Spectral](#spectral-light-as-an-instrument)
+- 🦞 It can be **run by an agent** through [OpenClaw](#openclaw-the-plants-brain) — AI with no API key, gated by the safety layers
 
 ---
 
 ## Contents
 
-- [The nineteen layers](#the-nineteen-layers) · [Requirements](#requirements)
+- [The twenty layers](#the-twenty-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
 - **[What worked last time](#-what-worked-last-time)** · **[System diagnosis](#-system-diagnosis)** · **[Looking at itself](#-looking-at-itself)** · [Maintenance](#-maintenance--the-health-of-the-instrument) · **[Learning it is wrong](#-learning-it-is-wrong)** · [Knowledge transfer](#-knowledge-transfer) · [Reading the electrome](#-reading-the-electrome)
 - **[🫀 Internal states](#-internal-states--what-the-plant-is-doing)** — defence activation · internal water stress · accumulated load · stress memory · circadian integrity
-- **[🖥 Dashboard](#-open-the-plant-in-a-browser)** · **[📇 Capability](#-what-a-plant-tells-the-others-it-has)** · **[🔦 Beacon mode](#-beacon-mode--talking-with-light)** · **[🛡 Security priming](#-security-priming--preparing-for-a-neighbours-threat)** · **[🚜 Navigation](#-moving-a-plant-without-being-clumsy)**
+- **[📡 Reading the space](#-reading-the-space-around-it)** · **[📮 A second way through](#-a-second-way-through)** · **[🖥 Dashboard](#-open-the-plant-in-a-browser)** · **[📇 Capability](#-what-a-plant-tells-the-others-it-has)** · **[🔦 Beacon mode](#-beacon-mode--talking-with-light)** · **[🛡 Security priming](#-security-priming--preparing-for-a-neighbours-threat)** · **[🚜 Navigation](#-moving-a-plant-without-being-clumsy)**
 - **[Symbiosis](#symbiosis)** — [Fusion](#-multirate-fusion) · [Evidence](#-evidence) · [Safety](#-safety) · [Control](#-hierarchical-control) · [Personalization](#-personalization)
-- **[🔬 Spectral](#-spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
-- **[Hardware](#-hardware-autodetection)** · **[🦞 OpenClaw](#-openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
+- **[Spectral](#spectral-light-as-an-instrument)** — 🔵 blue reads hydration · 🔴 red reads photosynthesis · 🟢 green reads the lower canopy
+- **[Hardware](#-hardware-autodetection)** · **[OpenClaw](#openclaw-the-plants-brain)** — AI with no API key, and an agent that operates the plant
 - [CLI](#-cli) · [Emoji scales](#-emoji-scales) · [Full API surface](#full-api-surface) · [Migrating from 1.x](#migrating-from-1x)
 
 ---
 
-## The nineteen layers
+## The twenty layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -93,6 +93,7 @@ Then it goes further than a monitor:
 | 🫀 **Internal states** | Five qualitative estimates of what the plant is *doing*, not what surrounds it | The system stops seeing only sensor numbers |
 | 🚜 **Navigation** | Constraints a robot stack cannot know, over a delegated ROS 2 planner | A pot is not a delivery robot |
 | 🖥 **Dashboard** | The plant in a browser: vitals, states, and what has no sensor | All of the above, visible without writing code |
+| 📡 **Space** | WiFi presence and a lidar scan, without a camera and without a map | It knows if you are in the room, and how far the neighbour really is |
 
 Every layer works alone. They compose.
 
@@ -147,7 +148,7 @@ Several drivers can run at once; readings merge, with earlier drivers winning on
 | Claude | `ANTHROPIC_API_KEY` | |
 | Grok | `XAI_API_KEY` | |
 | **Ollama** | none | Runs entirely on your machine — nothing leaves it |
-| **OpenClaw** | none | A local Gateway supplies the model, the key *and* the embeddings — see [OpenClaw](#-openclaw-the-plants-brain) |
+| **OpenClaw** | none | A local Gateway supplies the model, the key *and* the embeddings — see [OpenClaw](#openclaw-the-plants-brain) |
 | **Mock** | none | Deterministic and offline, so the whole library is testable |
 
 Retries with exponential backoff on transient failures, a response cache so ten plugins reacting to one sensor tick don't fire ten paid requests, and **structured output with schema coercion** — plugins receive objects with guaranteed keys, never prose to regex.
@@ -1449,6 +1450,124 @@ worthMoving( here, brightWindowsill, { metric: 'light' } )
 | `worse-destination` | Nobody measured it, or the gain costs more than it gives |
 | `no-map` | *"Everything above was checked and passed; only the navigation is missing."* |
 
+## 📡 Reading the space around it
+
+Two sensors that answer the same question from opposite ends — is anything there — and neither claims more than it can support.
+
+### WiFi, without a camera
+
+A body between two radios changes the signal that arrives. Channel State Information carries that change, and its variance over a few seconds separates an empty room from an occupied one. It works in the dark, through a wall, with nothing worn.
+
+```js
+await plant.attachSensor( {
+  driver : 'presence',
+  sensing: 'csi',              // or 'rssi' — it has to be stated
+  sample : async () => readCsiFromEsp32(),
+} )
+```
+
+**Presence and motion. Not pose, not identity, not breathing, not counting people.** Those need an array of receivers, a trained model and a calibration for your specific room; a single radio gives coarse presence, and the projects working on more say so themselves. Estimating a skeleton from one radio and reporting it as a fact would be inventing exactly the link this library spends most of its refusals avoiding.
+
+`sensing` has no default, on purpose. RSSI is one number for the whole signal; CSI is a value per subcarrier. What can honestly be reported differs between them, and stating which you have is what stops this claiming more than the radio supports.
+
+Everything is judged against **this room's own quiet** rather than a threshold from a table — two rooms with identical occupancy read completely different RSSI. So it refuses to answer until it has a quiet to depart from:
+
+> *5 of 40 samples. Presence here is a departure from this room's own quiet […] An absolute threshold would be a number from somebody else's room.*
+
+And a radio returning the same number every time is caught as a **stuck sensor**, not reported as a very still house — detected by exact repetition rather than a small threshold, because what counts as small depends entirely on whether these are decibels or amplitudes.
+
+### Why a plant cares
+
+Neither reason is about watching people.
+
+**The UV-B interlock stops depending on being told.** It refuses to emit while the room is occupied — UV-B burns skin and eyes and a plant on a shelf is at eye height — and until now the library could only know that if somebody said so.
+
+**Motion becomes a negative control.** Brushing past a plant produces an action potential that looks exactly like the opening of a wound response. The [defence estimate](#-internal-states--what-the-plant-is-doing) already discounts an event the weather explains; somebody walking past belongs in the same column, and indoors it is the commoner of the two.
+
+```js
+defenseActivation( { events: [ VP ], shift, motion: { explains: true } } )
+// level: 'low', downgradedFrom: 'medium'
+```
+
+### One lidar scan, and no map
+
+Cartographer and the SLAM stacks that followed it turn thousands of scans into a consistent map of a building. That is a hard problem, solved, and not this one — the [navigation layer](#-moving-a-plant-without-being-clumsy) delegates it to Nav2 for exactly that reason, and Cartographer's own README now says it is no longer actively maintained.
+
+So this stops well short and answers what a **single scan** answers, which needs no map, no loop closure and no pose graph:
+
+```js
+readSpace( scan, { neighbours: [ { id: 'willow', bearing: Math.PI / 2 } ] } )
+// { returns: 360,
+//   clearance: { clear: true, tightest: { metres: 0.3 }, openings: [ … ] },
+//   neighbours: [ { id: 'willow', metres: 0.3, measured: true,
+//                   bearingDeclared: true } ] }
+```
+
+**The first of those is the point.** The [coupling layer](#-two-plants-close-together-stop-being-two-plants) — shared humidity, competing for the same CO₂, whether a pest can walk across — rests entirely on how far apart two plants are, and until now that number was typed in by a person. Every conclusion carried the footnote:
+
+> *Declared, not measured — if a pot was moved and nobody said so, this is wrong.*
+
+A rangefinder removes it, and needs none of the machinery that makes SLAM hard.
+
+A scan returns distance and angle. It does not know that the return at 0.3 m is a plant rather than a chair leg, so **bearings stay declared and ranges are measured**, and the two are kept apart everywhere — the same split this library keeps between what was stated and what was observed.
+
+It also notices something appearing between the plant and the window, which matters because *a box on the windowsill and a cloudy week look identical in the light record* and call for completely different responses.
+
+## 📮 A second way through
+
+A colony had exactly one transport. If it failed, messages went nowhere — and six call sites swallowed the failure with an empty `catch`, so a colony could be **entirely broken and look like it was working**. A plant could warn its neighbours about a pest, be told nothing had gone wrong, and have warned nobody.
+
+The design is [**Maskpert**](https://github.com/AlejoMalia/lecc), the delivery layer of LECC, and it follows its five steps almost exactly: choose candidates, order by priority, fan out, confirm, spool what nobody took. Circuit breakers, hop trails and bounded queues are kept as they are.
+
+```js
+plant.colony.addLink( backupTransport, { name: 'backup', priority: 20 } )
+
+await plant.colony.warnNeighbours( { near: { willow: 0.25 } } )
+// { ok: true, delivered: [ 'backup' ], failed: { primary: 'socket closed' },
+//   confirmedBy: null,
+//   why: 'Delivered by backup, none of them a priority link — so it went, and
+//         nothing here can promise it went by the route that matters.' }
+
+plant.colony.deliveryHealth()
+plant.colony.retryUndelivered()
+```
+
+Three things are different from a general delivery layer, and all three come from having a living thing at the other end rather than a service.
+
+### Messages go off
+
+A general layer replays a spooled message when the link returns. That is right for a service — a reading is a reading whenever it arrives. Here it lies: **"I am thirsty" delivered two hours late waters a plant that was watered ninety minutes ago**, and an aid-session frame arriving after the session closed describes light that is no longer falling on anything.
+
+| Kind | Worth |
+| --- | --- |
+| `aid-frame` | 30 s — the session is live or it is over |
+| `ask` / `reply` | 1 min |
+| `chat` / `report` | 15 min |
+| `priming` | 12 h — a warning is still a warning |
+| `lesson`, `sos` | never expires |
+
+What survives the wait arrives **carrying when it was written and flagged as late**. Late and current are different facts, and the receiver is told which one it has.
+
+### Fan-out duplicates, and here a duplicate *acts*
+
+Sending across every healthy link means a message can arrive twice. In ordinary messaging that is noise; in this colony a second copy of a request opens a **second aid session**, and a second pest warning shortens an already shortened inspection interval again. The receiving side drops ids it has seen, and that is not optional.
+
+### Some links bill the plant at the other end
+
+The part no general-purpose delivery layer can model, because no general-purpose link harms its recipient. Talking by light at night puts light on a resting plant — metered, booked against *that plant's* dose ledger, paid by somebody who did not ask for the message.
+
+```
+costs the receiving plant 1 and this message is not urgent enough to spend that
+```
+
+So a link carries two prices and the receiver's dominates. A selector weighing only latency would reach for the optical link the moment TCP got slow, and take a neighbour's circadian rhythm to save two hundred milliseconds. Only `sos` and `priming` are worth spending it.
+
+This is also what turns [beacon mode](#-beacon-mode--talking-with-light) from a hardcoded special case into an ordinary link.
+
+### And an emulated link never confirms
+
+Standing in for a transport that will not start keeps routing and metrics meaningful. But a stand-in that reported success would recreate exactly what the beacon layer exists to prevent — a plant that *believes* it called for help. An emulated link may hold a message. It may never claim it arrived.
+
 ## 🧬 Inheritance between plants
 
 [Federated learning](#-federated-learning) pools statistics from many homes into an anonymous species profile. This is the other shape of the same idea: a **directed transfer from one mature plant to one new one**, rich and contextual, where the source is known and the receiver keeps its own identity.
@@ -1732,7 +1851,7 @@ Reward is asymmetric: **harm counts double**. A system that experiments on a liv
 
 ---
 
-# 🔬 Spectral: light as an instrument
+# Spectral: light as an instrument
 
 Every other layer in this library **listens**. This one **asks**.
 
@@ -1897,7 +2016,7 @@ Suggested: sensor "serial" (confidence 0.9)
 
 Identifies the board from the device tree, serial devices by USB vendor id, I2C sensors by address, and which optional packages are installed — then recommends a config and a firmware target with its reasoning and a confidence. Read-only throughout: it lists and reads, never writes or disturbs a bus.
 
-# 🦞 OpenClaw: the plant's brain
+# OpenClaw: the plant's brain
 
 [OpenClaw](https://github.com/openclaw/openclaw) runs a local Gateway that holds your models, your keys and your routing, and speaks OpenAI-compatible HTTP on port `18789`.
 
@@ -2147,6 +2266,17 @@ plant.colony.streamAid( id, { target, satisfied } )
 plant.colony.coupling( { reading, metres }, reference )
 plant.colony.warnNeighbours( { near } )
 plant.colony.primed                   canOffer( plant, AID.HUDDLE )
+
+// Reading the space
+plant.attachSensor( { driver: 'presence', sensing: 'csi', sample } )
+readSpace( scan, { neighbours, radius, previous } )
+rangeTo( scan, { id, bearing } )     clearance( scan )
+whatChanged( before, after )         motionExplains( history, at )
+
+// Colony: a second way through
+plant.colony.addLink( transport, { name, priority, costsReceiver } )
+plant.colony.deliveryHealth()        plant.colony.retryUndelivered()
+plant.colony.undelivered             // every send that did not arrive
 
 // Colony: capability, light and priming
 plant.colony.manifest                 plant.colony.whoCanRead( metric )
