@@ -11,6 +11,7 @@
 		"./sensors/mqtt": "./src/sensors/drivers/mqtt.js",
 		"./sensors/electrode": "./src/sensors/drivers/electrode.js",
 		"./sensors/presence": "./src/sensors/drivers/presence.js",
+		"./sensors/lidar": "./src/sensors/drivers/lidar.js",
 		"./memory": "./src/memory/store.js",
 		"./voice": "./src/voice/persona.js",
 		"./plugin": "./src/plugin.js",

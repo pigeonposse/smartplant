@@ -1503,6 +1503,24 @@ readSpace( scan, { neighbours: [ { id: 'willow', bearing: Math.PI / 2 } ] } )
 //                   bearingDeclared: true } ] }
 ```
 
+It is a driver like any other, and it refuses to answer from a scan older than ten seconds:
+
+```js
+await plant.attachSensor( { driver: 'lidar', scan: async () => rplidar.scan() } )
+
+// and then, without being asked again:
+await plant.colony.coupling( { reading, metres: 0.25, bearing: Math.PI / 2 } )
+// { metres: 0.31, measured: true }   ← the typed 0.25 is replaced
+
+await planMove( plant, { … } )
+// refusals: [ { reason: 'blocked',
+//   why: 'Boxed in: something is 0.18m away and this pot is 0.30m across.
+//         Nothing here can move until that clears, and a plan that says
+//         otherwise is planning through a wall.' } ]
+```
+
+> *A stale moisture reading is roughly still true. A stale scan describes a room somebody may have moved a chair through, and planning a route from it means routing through furniture that is no longer there.*
+
 **The first of those is the point.** The [coupling layer](#-two-plants-close-together-stop-being-two-plants) — shared humidity, competing for the same CO₂, whether a pest can walk across — rests entirely on how far apart two plants are, and until now that number was typed in by a person. Every conclusion carried the footnote:
 
 > *Declared, not measured — if a pot was moved and nobody said so, this is wrong.*
@@ -2269,6 +2287,7 @@ plant.colony.primed                   canOffer( plant, AID.HUDDLE )
 
 // Reading the space
 plant.attachSensor( { driver: 'presence', sensing: 'csi', sample } )
+plant.attachSensor( { driver: 'lidar', scan } )
 readSpace( scan, { neighbours, radius, previous } )
 rangeTo( scan, { id, bearing } )     clearance( scan )
 whatChanged( before, after )         motionExplains( history, at )
