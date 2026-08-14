@@ -51,6 +51,7 @@ Every layer works alone and they compose. The full write-up is in the [main READ
 | **Body** | Multirate fusion, reflexes, safety limits, personalization |
 | **Navigation** | The constraints a robot stack cannot know, over a planner it delegates to |
 | **Dashboard** | `plant.serve()` — a dark terminal on localhost, read-only |
+| **Co-adaptation** | One door every action goes through, and a record of when its own refusals turned out to have been unnecessary |
 
 ### Reading the space
 
@@ -69,6 +70,17 @@ Presence answers two things the library was short of: whether the room is occupi
 One lidar scan measures the distance between two plants, which every shared-humidity and CO₂ conclusion had been resting on and which a person had been typing in. Mapping is delegated: Nav2 does it properly.
 
 **Not claimed:** pose, identity, breathing, counting people, or a map of your flat.
+
+### Being wrong about itself
+
+```js
+plant.mayI( 'probe' )          // { allowed: false, blockedBy: [ … ] }
+plant.posture()                // every action, and what the states make of it
+plant.trajectory()             // is the coupling deepening or degrading
+await plant.exportIdentity()   // the same plant, into its next body
+```
+
+Every action goes through one door, and care is never blocked. An internal state that refuses things is making a claim nothing had ever checked, and there is exactly one place the other arm of that experiment exists: **an override is a natural experiment.** Somebody who passes `{ force: true }` has run the trial the system declined to run, and if nothing went wrong, that is a false positive observed rather than inferred.
 
 ### A colony that does not go quiet
 
