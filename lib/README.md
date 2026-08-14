@@ -7,6 +7,8 @@
 
 Node.js 18+. Zero runtime dependencies in the core.
 
+Its habit, everywhere: **it refuses rather than guesses.** A layer that lacks what it needs says so and names the sensor that would unlock it, instead of substituting a plausible number. That is why a plant with four sensors says little and means all of it.
+
 ```bash
 npm install smartplant
 ```
@@ -28,6 +30,54 @@ console.log( plant.status() )
 ```
 
 That runs with no hardware, no API key and no network.
+
+```js
+await plant.systemDiagnosis()   // 25 checks: what is wired, what is not, what to fix
+await plant.serve()             // the whole thing in a browser, read-only
+```
+
+## Beyond the basics
+
+Every layer works alone and they compose. The full write-up is in the [main README](https://github.com/pigeonposse/smartplant); this is what exists and what each is for.
+
+| | |
+| --- | --- |
+| **Electrophysiology** | Action and variation potentials, circadian rhythm, an electrome fingerprint that is this plant's rather than the species' |
+| **Internal states** | Five estimates of what the plant is *doing* — defence activation, internal water stress, accumulated load, stress memory, circadian integrity. Low confidence removes a state's authority rather than annotating it |
+| **Spectral** | LED as a probe rather than illumination, with dose ledgers and interlocks |
+| **Vision** | Classical phenotyping, ONNX models, a PlantCV bridge |
+| **Colony** | Plants talking to plants over a channel closed to people, with delivery that survives a link failing |
+| **Space** | WiFi presence and a lidar scan — is anybody in the room, and how far away is the neighbour really |
+| **Body** | Multirate fusion, reflexes, safety limits, personalization |
+| **Navigation** | The constraints a robot stack cannot know, over a planner it delegates to |
+| **Dashboard** | `plant.serve()` — a dark terminal on localhost, read-only |
+
+### Reading the space
+
+```js
+await plant.attachSensor( {
+  driver : 'presence',           // WiFi. `sensing` has no default:
+  sensing: 'csi',                // RSSI is one number, CSI is one per subcarrier,
+  sample : readRadio,            // and what can honestly be reported differs
+} )
+
+await plant.attachSensor( { driver: 'lidar', scan: readRplidar } )
+```
+
+Presence answers two things the library was short of: whether the room is occupied, which is what the UV-B interlock needs, and whether anybody moved at the moment of an electrical event — brushing a leaf produces an action potential that looks exactly like the start of a wound response.
+
+One lidar scan measures the distance between two plants, which every shared-humidity and CO₂ conclusion had been resting on and which a person had been typing in. Mapping is delegated: Nav2 does it properly.
+
+**Not claimed:** pose, identity, breathing, counting people, or a map of your flat.
+
+### A colony that does not go quiet
+
+```js
+plant.colony.addLink( backup, { name: 'backup', priority: 20 } )
+plant.colony.deliveryHealth()
+```
+
+A message goes out over every link worth trying and is spooled if none took it. Messages have a shelf life, because *"I am thirsty"* delivered two hours late waters a plant that was watered ninety minutes ago; what survives the wait arrives flagged as late. Design taken from [Maskpert](https://github.com/AlejoMalia/lecc).
 
 ## Configuration
 
@@ -200,6 +250,8 @@ import { internalStates } from 'smartplant/states'
 import { planMove }       from 'smartplant/navigation'
 import { serveVitals }    from 'smartplant/dashboard'
 import { readSpace }      from 'smartplant/spatial'
+import { PresenceSensor } from 'smartplant/sensors/presence'
+import { LidarSensor }    from 'smartplant/sensors/lidar'
 import { couplingState } from 'smartplant/colony'
 ```
 
@@ -212,6 +264,16 @@ import { couplingState } from 'smartplant/colony'
 * `import { SmartPlant } from 'smartplant/src/main.js'` still resolves.
 * Stored `historicalData` from 1.x is migrated automatically on first load.
 * Plugins are ESM and take the kernel: `await plant.use( plugin )`.
+
+## What has and has not touched hardware
+
+Worth knowing before trusting any of it with a plant you care about.
+
+**Exercised against something real.** Serial, over a pseudo-terminal the `serialport` package cannot distinguish from a port with an Arduino on it — JSON frames, CSV frames, rubbish on the line, and a device that stops talking going stale rather than serving its last value forever. MQTT, against a real broker over a real socket using the same `mqtt` package you would install, including a retained message published before subscribing and wildcard topics. The electrode over that same real serial transport rather than its simulator.
+
+**Never touched a device.** Everything else. No ESP32-S3 with CSI firmware has fed the presence driver, no RPLIDAR has fed the lidar one, no real Home Assistant has answered the integration — that was a stand-in server speaking its API, which proves the library speaks the language and not that Home Assistant accepts it. The seven AI providers are exercised through their timeout paths and never really called.
+
+The physiology rests on published work rather than on validation with plants. That low red:far-red suppresses jasmonate signalling is well established; that this code produces that response in a living plant is not something anybody has checked.
 
 ## Testing
 

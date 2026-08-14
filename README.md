@@ -81,7 +81,7 @@ Then it goes further than a monitor:
 | 🗨 **Colony** | Conversation between plants, with 73 skills as the fast path | They talk to each other, and only about what they measure |
 | 🔁 **Self-correction** | Prediction error, identity drift, decaying priors, response hysteresis | The system finds out when *it* is the thing that is wrong |
 | 🔎 **Experience** | A ledger of what actually resolved each problem, against the base rate of doing nothing | It reuses what worked, without inventing what did not |
-| 🩻 **Diagnosis** | One command that checks everything wired up and says what to fix | Know it works before walking away |
+| 🩻 **Diagnosis** | 25 checks over everything wired up, each ending in something to do | Know it works before walking away |
 | 🩺 **Self-check** | Weekly and monthly reviews, plus a technical inspection of the instrument | It watches its own trajectory, and its own sensors |
 | 👁 **Vision** | Classical phenotyping, ONNX models, PlantCV bridge | See wilting hours before you notice it |
 | 💾 **Memory** | Persistent readings, care log, species profile | Advice builds on history, not a snapshot |
@@ -649,6 +649,8 @@ What to change
 ```
 
 Also available as `plant.systemDiagnosis()`. It exits non-zero when something is broken, so it works in a startup script or a cron job.
+
+**Twenty-five areas**, covering every layer that can be misconfigured: sensors and the reading itself, electrode, memory, AI, spectral, vision, colony and whether anything it says can leave, archetype, power, inference, internal states, coupling, optical, security, navigation, presence, space, dashboard, learning, knowledge, safety limits, voice and plugins.
 
 Two rules decide whether a check like this is useful or just noise:
 
@@ -1530,6 +1532,26 @@ A rangefinder removes it, and needs none of the machinery that makes SLAM hard.
 A scan returns distance and angle. It does not know that the return at 0.3 m is a plant rather than a chair leg, so **bearings stay declared and ranges are measured**, and the two are kept apart everywhere — the same split this library keeps between what was stated and what was observed.
 
 It also notices something appearing between the plant and the window, which matters because *a box on the windowsill and a cloudy week look identical in the light record* and call for completely different responses.
+
+### What each one changes
+
+Neither sensor is decoration, and neither is folded in where it does not belong — a scan is not a vital sign and presence is not plant physiology.
+
+| Sensor | Changes |
+| --- | --- |
+| lidar | The distance in every coupling conclusion · `planMove` refuses when the pot is boxed in · the panel's inventory · the colony manifest advertises ranging |
+| wifi | The UV-B interlock, which stops depending on being told · defence activation, where motion is a negative control · `stress_load`, because being handled is a real cost · **watering** |
+
+That last one is the sharpest of them. Somebody watered it is the ordinary explanation for a jump in soil moisture, and it is the only one that requires somebody to have been there:
+
+```js
+await plant.water()
+// { refused: true, state: 'water_stress_internal',
+//   why: 'The pot got wetter and nobody was here to water it. That leaves a
+//         leak, rain through an open window, or a probe drifting up as it
+//         loses contact — and all three want looking at rather than being
+//         folded into the watering record as a drink the plant was given.' }
+```
 
 ## 📮 A second way through
 
