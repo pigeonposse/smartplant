@@ -21,6 +21,7 @@
 		"./federated": "./src/federated/index.js",
 		"./migration": "./src/migration/index.js",
 		"./colony": "./src/colony/index.js",
+		"./colony/delivery": "./src/colony/delivery.js",
 		"./bridge.py": "./src/vision/bridge.py",
 		"./package.json": "./package.json",
 		"./fusion": "./src/fusion/index.js",
