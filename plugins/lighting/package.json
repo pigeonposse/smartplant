@@ -4,10 +4,10 @@
 	"description": "Placement, exposure-hour and grow-light recommendations.",
 	"main": "index.js",
 	"peerDependencies": {
-		"smartplant": "workspace:^"
+		"smartplant": "^3.0.4"
 	},
 	"devDependencies": {
-		"smartplant": "workspace:*"
+		"smartplant": "^3.0.4"
 	},
 	"publishConfig": {
 		"access": "public",

@@ -15,10 +15,10 @@
 		"index.js"
 	],
 	"peerDependencies": {
-		"smartplant": "workspace:^"
+		"smartplant": "^3.0.4"
 	},
 	"devDependencies": {
-		"smartplant": "workspace:*"
+		"smartplant": "^3.0.4"
 	},
 	"scripts": {
 		"test": "node --test test.js"

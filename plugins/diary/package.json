@@ -4,10 +4,10 @@
 	"description": "The plant writes its own dated journal, grounded in real readings and care events.",
 	"main": "index.js",
 	"peerDependencies": {
-		"smartplant": "workspace:^"
+		"smartplant": "^3.0.4"
 	},
 	"devDependencies": {
-		"smartplant": "workspace:*"
+		"smartplant": "^3.0.4"
 	},
 	"publishConfig": {
 		"access": "public",
