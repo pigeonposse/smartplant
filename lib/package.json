@@ -48,6 +48,7 @@
 		"./states/gate": "./src/states/gate.js",
 		"./states/calibration": "./src/states/calibration.js",
 		"./states/trajectory": "./src/states/trajectory.js",
+		"./states/adaptation": "./src/states/adaptation.js",
 		"./navigation": "./src/navigation/index.js",
 		"./spatial": "./src/spatial/index.js",
 		"./dashboard": "./src/dashboard/index.js"
