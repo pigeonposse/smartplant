@@ -45,6 +45,9 @@
 		"./archetypes": "./src/archetypes/index.js",
 		"./power": "./src/power/index.js",
 		"./states": "./src/states/index.js",
+		"./states/gate": "./src/states/gate.js",
+		"./states/calibration": "./src/states/calibration.js",
+		"./states/trajectory": "./src/states/trajectory.js",
 		"./navigation": "./src/navigation/index.js",
 		"./spatial": "./src/spatial/index.js",
 		"./dashboard": "./src/dashboard/index.js"
