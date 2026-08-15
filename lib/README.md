@@ -52,6 +52,8 @@ Every layer works alone and they compose. The full write-up is in the [main READ
 | **Navigation** | The constraints a robot stack cannot know, over a planner it delegates to |
 | **Dashboard** | `plant.serve()` — a dark terminal on localhost, read-only |
 | **Co-adaptation** | One door every action goes through, and a record of when its own refusals turned out to have been unnecessary |
+| **Watering** | Volume from the pot, fraction from the archetype, duration from a measured pump — and a check that the water arrived |
+| **Thermal** | Leaf temperature for every pixel of the canopy, without publishing an absolute it cannot support |
 
 ### Reading the space
 
@@ -70,6 +72,22 @@ Presence answers two things the library was short of: whether the room is occupi
 One lidar scan measures the distance between two plants, which every shared-humidity and CO₂ conclusion had been resting on and which a person had been typing in. Mapping is delegated: Nav2 does it properly.
 
 **Not claimed:** pose, identity, breathing, counting people, or a map of your flat.
+
+### How much water
+
+```js
+const plant = await createPlant( {
+  species : 'Monstera deliciosa',
+  pot     : { diameterCm: 22 },     // the number nothing can work out for itself
+  pump    : { mlPerSecond: 25 },    // measured with a jug, never looked up
+} )
+
+plant.wateringPlan()   // { ml: 640, seconds: 25.6, litres: 5.8 }
+```
+
+The archetype decides what fraction of the substrate to wet; the pot decides the volume. The same plant in a 12 cm pot and a 40 cm one wants **thirty times** the water, so a table of millilitres per species is wrong by an order of magnitude for one of them — and no pot size is assumed, because a default would carry that same factor.
+
+Watering by pump is open-loop: a blocked line, an empty tank and a tube that has fallen out of the pot are identical from the relay, and each records a watering that did not happen. `confirmWatering()` is what tells you the water arrived.
 
 ### Being wrong about itself
 
@@ -264,6 +282,8 @@ import { serveVitals }    from 'smartplant/dashboard'
 import { readSpace }      from 'smartplant/spatial'
 import { PresenceSensor } from 'smartplant/sensors/presence'
 import { LidarSensor }    from 'smartplant/sensors/lidar'
+import { ThermalSensor }  from 'smartplant/sensors/thermal'
+import { dose }           from 'smartplant/archetypes'
 import { couplingState } from 'smartplant/colony'
 ```
 

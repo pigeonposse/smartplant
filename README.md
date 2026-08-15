@@ -4,8 +4,26 @@
 [![HEADER](https://github.com/pigeonposse/smartplant/blob/main/docs/banner.png?raw=true)](https://github.com/pigeonposse)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
-![ROS 2](https://img.shields.io/badge/ROS%202-Humble%2B-22314E.svg)
-![Mock](https://img.shields.io/badge/mock-342%20checks%20passing-brightgreen.svg)
+[![npm](https://img.shields.io/badge/npm-smartplant%203.0.5-cb3837.svg)](https://www.npmjs.com/package/smartplant)
+![Node](https://img.shields.io/badge/node-18%2B-5FA04E.svg)
+![Runtime dependencies](https://img.shields.io/badge/runtime%20deps-0-brightgreen.svg)
+
+![Tests](https://img.shields.io/badge/tests-1076%20passing-brightgreen.svg)
+![Mock](https://img.shields.io/badge/mock-224%20checks%20passing-brightgreen.svg)
+![Wired](https://img.shields.io/badge/fully%20wired-64%20checks%20passing-brightgreen.svg)
+![Lint](https://img.shields.io/badge/lint-0%20warnings-brightgreen.svg)
+![Diagnosis](https://img.shields.io/badge/self%20diagnosis-32%20areas-2b6d94.svg)
+
+![Sensors](https://img.shields.io/badge/sensor%20drivers-10-2b6d94.svg)
+![Devices](https://img.shields.io/badge/device%20profiles-37-2b6d94.svg)
+![Metrics](https://img.shields.io/badge/metrics-24-2b6d94.svg)
+![Plugins](https://img.shields.io/badge/plugins-13-2b6d94.svg)
+![Examples](https://img.shields.io/badge/examples-13%20runnable-2b6d94.svg)
+
+![ROS 2](https://img.shields.io/badge/ROS%202-delegated%20to%20Nav2-22314E.svg)
+![Hardware](https://img.shields.io/badge/hardware-serial%20%2B%20MQTT%20verified-a8571f.svg)
+
+> Every number above is produced by `node --run check` and is checked in CI-style before each release. The hardware badge is deliberately narrow: serial and MQTT are exercised against a real pseudo-terminal and a real broker; everything else has only ever met a mock. [What has and has not touched hardware](#what-has-and-has-not-touched-hardware).
 
 **SmartPlant is a bridge between AI and plants.**
 
@@ -60,7 +78,7 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The twenty-one layers](#the-twenty-one-layers) · [Requirements](#requirements)
+- [The twenty-two layers](#the-twenty-two-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
@@ -74,7 +92,7 @@ Then it goes further than a monitor:
 
 ---
 
-## The twenty-one layers
+## The twenty-two layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -99,6 +117,7 @@ Then it goes further than a monitor:
 | 🖥 **Dashboard** | The plant in a browser: vitals, states, and what has no sensor | All of the above, visible without writing code |
 | 📡 **Space** | WiFi presence and a lidar scan, without a camera and without a map | It knows if you are in the room, and how far the neighbour really is |
 | 🔁 **Co-adaptation** | One door for every action, and a record of when its own refusals were wrong | The system can be wrong about *itself* and find out |
+| 💧 **Watering** | Volume from the pot, fraction from the archetype, duration from a measured pump | A dose it can defend, and a check that the water arrived |
 
 Every layer works alone. They compose.
 
@@ -1280,6 +1299,26 @@ A person should be able to tell at a glance the difference between *"this plant 
 
 Internal states carry their `acts` flag through to the screen, so a state that is **not allowed to change anything** — because its evidence is too weak — does not look like one that is.
 
+### Recent activity
+
+What the symbiont just did, or just noticed — the one thing that existed nowhere a person could read in order:
+
+```
+16:34  CARE       Watered · 180 ml
+16:34  STATE      defense activation → high · now gating decisions
+16:34  REFUSAL    probe refused · defense activation
+16:33  SYSTEM     Instrument inspected ×6
+16:31  ENVIRONMENT soil fell · 64.2 → 12.0
+```
+
+It **listens rather than being told**. A `log()` call at every interesting place produces a feed that is complete the day it is written and quietly incomplete forever after, because the next thing anybody adds will not have the call. So it subscribes to the event bus and diffs the states between cycles.
+
+Readings are not activity — only a change large enough to have meant something earns a line, and an identical line inside half an hour is counted rather than repeated. **Refusals are the most useful entries in it**: somebody looking at a plant that has not been watered wants to know it was declined and why, far more than another line saying the soil was read again. And a line from a failing instrument is dimmed and tagged rather than dropped, because hiding it is how a dying electrode's readings get believed.
+
+### Three pages, light by default
+
+Dashboard, colony and detail. The colony page is hidden when there is nobody to have talked to — an empty tab implying a conversation is worse than no tab. Light by default because this is glanced at, often on a phone, often in daylight; dark is one control away and the choice is remembered.
+
 ### Loopback, and read-only
 
 The colony server binds to `127.0.0.1` unless told otherwise, and this does the same for a stronger reason. A colony port carries plant chatter; **this port carries a live feed of somebody's home** — when the lights go on, when the temperature drops because a window opened, and in the clearest possible terms whether anyone is in.
@@ -1305,6 +1344,80 @@ And it answers nothing but `GET`:
 There is no `allowActions` option. Adding one later would be a deliberate act with its own authentication story, not a flag.
 
 Two smaller things that matter more than they look: a **staleness banner** appears the moment the event stream drops, because a dashboard that keeps showing the last numbers after the connection dies is the most misleading thing it can do — the plant may have been dark for hours. And `destroy()` closes the server, so a dashboard is never left holding a port after the plant it describes has gone.
+
+## What has and has not touched hardware
+
+Worth knowing before trusting any of it with a plant you care about, and the reason the hardware badge above is narrow rather than green.
+
+**Exercised against something real.** Serial, over a pseudo-terminal the `serialport` package cannot distinguish from a port with an Arduino on it — JSON frames, CSV frames, rubbish on the line, and a device that stops talking going stale rather than serving its last value forever. MQTT, against a real broker over a real socket using the same `mqtt` package you would install, including a retained message published before subscribing and wildcard topics. The electrode over that same real serial transport rather than its simulator.
+
+**Never touched a device.** Everything else. No ESP32-S3 with CSI firmware has fed the presence driver, no RPLIDAR the lidar one, no Lepton the thermal one, and no real Home Assistant has answered the integration — that was a stand-in server speaking its API, which proves the library speaks the language and not that Home Assistant accepts it. The seven AI providers are exercised through their timeout paths and never really called.
+
+The physiology rests on published work rather than on validation with plants. That low red:far-red suppresses jasmonate signalling is well established; that this code produces that response in a living plant is not something anybody has checked.
+
+## 💧 How much water
+
+A pump on a relay needs two numbers nobody was giving it. `water()` recorded that a watering happened and said nothing about its size — fine for a person with a watering can, useless for a pump.
+
+### The species is not the number that matters
+
+The obvious design is a table of millilitres per archetype. It is wrong by an **order of magnitude**, not by a little:
+
+```js
+dose( { archetype: 'tropical', pot: { diameterCm: 12 } } )   //   80 ml
+dose( { archetype: 'tropical', pot: { diameterCm: 40 } } )   // 2986 ml
+```
+
+Same plant, same archetype, thirty times the water. What the archetype decides is the **fraction** of substrate to wet and how far it may dry back; the **pot** decides the volume. Both are required, and no pot size is assumed:
+
+> *That fraction is the part the plant decides; the volume is the part the pot decides […] a default would be wrong by that same factor.*
+
+So `{ pot: { diameterCm } }` belongs in the plant's configuration, and the diagnosis asks for it when it is missing.
+
+| | fraction | dry back to |
+| --- | --- | --- |
+| cactus | 0.20 | 0.08 — *almost every dead houseplant cactus was overwatered* |
+| aroid | 0.30 | 0.45 |
+| fern | 0.45 | 0.70 — *the one group where letting it dry once is a real setback* |
+| woody | 0.40 | 0.35 — *a shallow watering wets the top and leaves the roots that matter dry* |
+
+### Seconds are measured, not looked up
+
+Flow rate depends on this pump, this tube and this head height, and it drifts as the tube ages. Without a calibration the system gives the volume and **refuses the duration**, which is the honest half rather than a plausible whole.
+
+### And it is open-loop, which is the dangerous part
+
+A blocked line, an empty tank and a tube that has fallen out of the pot are identical from the relay, and each records a watering that did not happen:
+
+```js
+plant.confirmWatering( soilBefore )
+// { arrived: false, fault: true,
+//   why: 'The pump ran and soil moved 1.0 points, which is not a watering. […]
+//         a second dose on a blocked line does nothing except record a second
+//         watering that did not happen.' }
+```
+
+## 🌡 Thermal, and what it will not claim
+
+A contact probe gives one number from one leaf. A thermal camera gives it for every pixel of the canopy, with nothing touching the plant.
+
+**An uncalibrated sensor does not know the temperature.** A Lepton is accurate to about ±5 °C absolutely and to hundredths *relative to itself within one frame*. So it does not publish `leafTemperature` unless you declare it calibrated — feeding VPD a number with five degrees of error in it is worse than having none, because every inference downstream then looks complete.
+
+What it publishes is the canopy's **spread**, which is a difference and survives the offset. And every useful measurement here happens to be a difference:
+
+```js
+stressIndex( frame, airTemp )
+// { index: 0.83,
+//   why: 'The canopy is only 1.0°C above the air, which means it has largely
+//         stopped cooling itself. A leaf that is not evaporating is a leaf that
+//         has shut its stomata — hours before it looks wilted.' }
+```
+
+The air temperature has to come from a **separate thermometer**. Reading it off the same frame would cancel the error out of both numbers and make their difference look perfect while meaning nothing.
+
+It sees one thing no contact probe can — half a canopy transpiring and half not, which is a blocked vessel or a branch in a draught long before it is visible, and a clip reports whichever leaf it was on. And a plant that has stopped transpiring altogether **vanishes into the wall behind it**, which is reported as a finding rather than as a failure to find one.
+
+No camera library is imported: `flir-lepton` and the rest are third-party, several need a native build, and they change. The driver takes a callback, as presence and lidar do.
 
 ## 🔁 Being wrong about itself
 

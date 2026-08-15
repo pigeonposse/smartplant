@@ -1,10 +1,10 @@
 {
 	"name": "@smartplant/watering",
-	"version": "3.0.4",
+	"version": "3.0.5",
 	"description": "Predicts watering needs from soil moisture, trends and care history.",
 	"main": "index.js",
 	"peerDependencies": {
-		"smartplant": "^3.0.4"
+		"smartplant": "^3.0.5"
 	},
 	"devDependencies": {
 		"smartplant": "^3.0.4"

@@ -1,6 +1,6 @@
 {
 	"name": "@smartplant/colony",
-	"version": "3.0.4",
+	"version": "3.0.5",
 	"description": "A conversation channel between plants, with 71 skills as the fast path for asking each other things.",
 	"type": "module",
 	"main": "index.js",
@@ -15,7 +15,7 @@
 		"index.js"
 	],
 	"peerDependencies": {
-		"smartplant": "^3.0.4"
+		"smartplant": "^3.0.5"
 	},
 	"devDependencies": {
 		"smartplant": "^3.0.4"

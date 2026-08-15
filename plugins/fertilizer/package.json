@@ -1,10 +1,10 @@
 {
 	"name": "@smartplant/fertilizer",
-	"version": "3.0.4",
+	"version": "3.0.5",
 	"description": "Feeding schedule and nutrient guidance from conductivity and care history.",
 	"main": "index.js",
 	"peerDependencies": {
-		"smartplant": "^3.0.4"
+		"smartplant": "^3.0.5"
 	},
 	"devDependencies": {
 		"smartplant": "^3.0.4"

@@ -1,10 +1,10 @@
 {
 	"name": "@smartplant/pests",
-	"version": "3.0.4",
+	"version": "3.0.5",
 	"description": "Pest risk from environmental conditions, plus identification from symptoms.",
 	"main": "index.js",
 	"peerDependencies": {
-		"smartplant": "^3.0.4"
+		"smartplant": "^3.0.5"
 	},
 	"devDependencies": {
 		"smartplant": "^3.0.4"

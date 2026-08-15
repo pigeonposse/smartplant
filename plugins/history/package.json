@@ -1,10 +1,10 @@
 {
 	"name": "@smartplant/history",
-	"version": "3.0.4",
+	"version": "3.0.5",
 	"description": "Trend, cycle and slow-decline analysis over stored sensor history.",
 	"main": "index.js",
 	"peerDependencies": {
-		"smartplant": "^3.0.4"
+		"smartplant": "^3.0.5"
 	},
 	"devDependencies": {
 		"smartplant": "^3.0.4"

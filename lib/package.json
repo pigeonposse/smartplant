@@ -1,6 +1,6 @@
 {
 	"name": "smartplant",
-	"version": "3.0.4",
+	"version": "3.0.5",
 	"description": "A bridge between AI and plants: pluggable sensors, persistent plant memory, multi-provider AI and a first-person plant voice.",
 	"main": "src/index.js",
 	"module": "src/index.js",
@@ -54,6 +54,7 @@
 		"./states/consolidation": "./src/states/consolidation.js",
 		"./states/provenance": "./src/states/provenance.js",
 		"./states/profile": "./src/states/profile.js",
+		"./states/activity": "./src/states/activity.js",
 		"./navigation": "./src/navigation/index.js",
 		"./spatial": "./src/spatial/index.js",
 		"./dashboard": "./src/dashboard/index.js"
