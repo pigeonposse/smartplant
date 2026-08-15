@@ -54,6 +54,7 @@ Every layer works alone and they compose. The full write-up is in the [main READ
 | **Co-adaptation** | One door every action goes through, and a record of when its own refusals turned out to have been unnecessary |
 | **Watering** | Volume from the pot, fraction from the archetype, duration from a measured pump — and a check that the water arrived |
 | **Thermal** | Leaf temperature for every pixel of the canopy, without publishing an absolute it cannot support |
+| **The pot** | Whether the container is running out, and a transplant mode where you say the litres and nothing else |
 
 ### Reading the space
 
@@ -88,6 +89,17 @@ plant.wateringPlan()   // { ml: 640, seconds: 25.6, litres: 5.8 }
 The archetype decides what fraction of the substrate to wet; the pot decides the volume. The same plant in a 12 cm pot and a 40 cm one wants **thirty times** the water, so a table of millilitres per species is wrong by an order of magnitude for one of them — and no pot size is assumed, because a default would carry that same factor.
 
 Watering by pump is open-loop: a blocked line, an empty tank and a tube that has fallen out of the pot are identical from the relay, and each records a watering that did not happen. `confirmWatering()` is what tells you the water arrived.
+
+### The pot is part of the body
+
+```js
+plant.rootSpace()          // is this container running out?
+await plant.transplant( { volumeL: 5 } )   // the only thing you tell it
+```
+
+It does not see the roots. What it sees is whether the plant is behaving like one whose pot is filling up — drying faster than it did, wanting water sooner in the same container — which shows months before a person notices, because a person notices when the plant is already suffering. It recommends and never acts.
+
+A transplant rescales the doses, closes the old soil baseline, suspends the root-space estimate and holds off elective things until the readings settle. The calibration record, the ledger and the trajectory all survive: the same plant was moved, not replaced.
 
 ### Being wrong about itself
 

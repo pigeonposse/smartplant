@@ -13,3 +13,7 @@
 **The terminal** gets three pages, a light theme with dark one control away, the mark inverted so it is visible on white, and the plant's own line centred and larger — it was the smallest thing on a page about it.
 
 The system diagnosis covers 32 areas.
+
+**The pot is part of the body.** The container was a number used to size a watering, and nothing here knew that a plant outgrows one. `rootSpace()` estimates whether it is filling up — not by seeing roots, which it cannot, but by noticing that the same plant in the same pot dries faster and wants water sooner than it did. That comparison is the plant against itself in one container, so it needs no table of expected sizes. One signal is a hot week; several moving together over months is a pot running out. It recommends and never acts, because repotting is a physical act with real risk and the evidence here is indirect by construction.
+
+`transplant({ volumeL })` asks for one thing, because somebody repotting a plant has soil on their hands and what they know that the system cannot is the physical fact. Everything else follows: doses rescale, the soil baseline closes and reopens empty, the root-space estimate suspends, elective things wait and care does not. The calibration record, the ledger and the trajectory survive — the same plant was moved, not replaced. Settling ends when the soil series stops lurching rather than when a number of days has passed.

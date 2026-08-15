@@ -45,6 +45,8 @@
 		"./journal": "./src/journal/index.js",
 		"./devices": "./src/devices/index.js",
 		"./archetypes": "./src/archetypes/index.js",
+		"./archetypes/rootspace": "./src/archetypes/rootspace.js",
+		"./archetypes/transplant": "./src/archetypes/transplant.js",
 		"./power": "./src/power/index.js",
 		"./states": "./src/states/index.js",
 		"./states/gate": "./src/states/gate.js",

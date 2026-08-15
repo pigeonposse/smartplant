@@ -8,11 +8,11 @@
 ![Node](https://img.shields.io/badge/node-18%2B-5FA04E.svg)
 ![Runtime dependencies](https://img.shields.io/badge/runtime%20deps-0-brightgreen.svg)
 
-![Tests](https://img.shields.io/badge/tests-1076%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-1096%20passing-brightgreen.svg)
 ![Mock](https://img.shields.io/badge/mock-224%20checks%20passing-brightgreen.svg)
-![Wired](https://img.shields.io/badge/fully%20wired-64%20checks%20passing-brightgreen.svg)
+![Wired](https://img.shields.io/badge/fully%20wired-73%20checks%20passing-brightgreen.svg)
 ![Lint](https://img.shields.io/badge/lint-0%20warnings-brightgreen.svg)
-![Diagnosis](https://img.shields.io/badge/self%20diagnosis-32%20areas-2b6d94.svg)
+![Diagnosis](https://img.shields.io/badge/self%20diagnosis-33%20areas-2b6d94.svg)
 
 ![Sensors](https://img.shields.io/badge/sensor%20drivers-10-2b6d94.svg)
 ![Devices](https://img.shields.io/badge/device%20profiles-37-2b6d94.svg)
@@ -78,7 +78,7 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The twenty-two layers](#the-twenty-two-layers) · [Requirements](#requirements)
+- [The twenty-three layers](#the-twenty-two-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
@@ -92,7 +92,7 @@ Then it goes further than a monitor:
 
 ---
 
-## The twenty-two layers
+## The twenty-three layers
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -118,6 +118,7 @@ Then it goes further than a monitor:
 | 📡 **Space** | WiFi presence and a lidar scan, without a camera and without a map | It knows if you are in the room, and how far the neighbour really is |
 | 🔁 **Co-adaptation** | One door for every action, and a record of when its own refusals were wrong | The system can be wrong about *itself* and find out |
 | 💧 **Watering** | Volume from the pot, fraction from the archetype, duration from a measured pump | A dose it can defend, and a check that the water arrived |
+| 🪴 **The pot** | Whether the container is running out, and moving to a bigger one | The pot is part of the body, and it stops fitting |
 
 Every layer works alone. They compose.
 
@@ -1354,6 +1355,49 @@ Worth knowing before trusting any of it with a plant you care about, and the rea
 **Never touched a device.** Everything else. No ESP32-S3 with CSI firmware has fed the presence driver, no RPLIDAR the lidar one, no Lepton the thermal one, and no real Home Assistant has answered the integration — that was a stand-in server speaking its API, which proves the library speaks the language and not that Home Assistant accepts it. The seven AI providers are exercised through their timeout paths and never really called.
 
 The physiology rests on published work rather than on validation with plants. That low red:far-red suppresses jasmonate signalling is well established; that this code produces that response in a living plant is not something anybody has checked.
+
+## 🪴 The pot is part of the body
+
+The container is the physical limit of everything the plant can do, and it was a number used to size a watering and nothing else. Nothing here knew that a plant outgrows its pot, that outgrowing it is gradual and invisible, or that a person usually notices only once the plant is suffering.
+
+### It does not see the roots
+
+There is no root sensor. This does not measure root mass, cannot see rot, knows nothing about root architecture, and does not replace tipping the plant out and looking. What it does is narrower:
+
+> The system cannot see the roots, but it can tell whether this plant is behaving like one whose pot is running out — and it notices months before a person does, because a person notices when the plant starts suffering and this notices when the drying curve starts changing.
+
+A pot with more root in it holds less water and empties faster, so **the same plant in the same pot needs watering sooner than it did**. That ratio — recent against early *in this container* — is the signal, and it needs no table of expected sizes because it compares the plant against itself.
+
+```js
+plant.rootSpace()
+// { index: 'low', outlook: '4–10 weeks', confidence: 'medium', acts: false,
+//   evidence: [ 'soil dries 1.4× faster than in the first 45 days in this pot',
+//               'watering interval 5.2d → 2.6d in the same pot' ] }
+```
+
+One signal is a hot week, a probe that shifted or a change of room. Several moving together over months is a pot filling up. A degraded probe is discounted out loud, because **drift in the right direction looks exactly like a pot filling up**.
+
+And `acts` is false and stays false. Repotting is a physical act with real risk, it costs somebody an afternoon, and the evidence here is indirect by construction.
+
+### Moving it, where the person says one thing
+
+```js
+await plant.transplant( { volumeL: 5 } )
+```
+
+That is the whole interface. Somebody repotting a plant has soil on their hands and no interest in configuring settling windows — what they know that the system cannot is the physical fact.
+
+Everything else follows on its own: the doses rescale, the drying expectations reset, the soil baseline closes and a new one starts empty, the root-space estimate suspends, and elective things wait.
+
+| Resets | Survives |
+| --- | --- |
+| watering dose, drying expectation | calibration record — *twelve overrides is months, and a repotting does not invalidate one* |
+| soil baseline — *the old band describes a pot that no longer exists* | resolution ledger, trajectory, adaptation log |
+| weight baseline, root-space estimate | electrome baseline, unless the electrode moved too |
+
+**Settling ends on the readings, not the calendar.** A plant that settles in four days should not be treated as fragile for a fortnight, and one still wobbling after three weeks should not be declared fine because the days ran out — so it watches whether the soil series has stopped lurching, against that plant's own first days in the new pot, and gives up waiting at three weeks rather than staying cautious forever.
+
+Care is never withheld while it settles. A repotted plant still gets watered.
 
 ## 💧 How much water
 
