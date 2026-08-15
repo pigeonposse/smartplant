@@ -43,7 +43,11 @@ jobs:
       - name: ⬇️🟢 Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Wrangler requires >= 22. On 20 the action decides its wrangler is
+          # incompatible, tries to install its own with `pnpm add`, and pnpm
+          # refuses to add to the root of a workspace without -w — which is a
+          # flag this action does not pass. Node 22 avoids the whole detour.
+          node-version: 22
           cache: 'pnpm'
 
       - name: ⬇️📦 Install dependencies
