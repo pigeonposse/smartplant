@@ -9,7 +9,7 @@
 ![Runtime dependencies](https://img.shields.io/badge/runtime%20deps-0-brightgreen.svg)
 
 ![Tests](https://img.shields.io/badge/tests-1096%20passing-brightgreen.svg)
-![Mock](https://img.shields.io/badge/mock-224%20checks%20passing-brightgreen.svg)
+![Mock](https://img.shields.io/badge/mock-257%20checks%20passing-brightgreen.svg)
 ![Wired](https://img.shields.io/badge/fully%20wired-73%20checks%20passing-brightgreen.svg)
 ![Lint](https://img.shields.io/badge/lint-0%20warnings-brightgreen.svg)
 ![Diagnosis](https://img.shields.io/badge/self%20diagnosis-33%20areas-2b6d94.svg)
@@ -78,7 +78,7 @@ Then it goes further than a monitor:
 
 ## Contents
 
-- [The twenty-three layers](#the-twenty-two-layers) · [Requirements](#requirements)
+- [The twenty-three layers](#the-twenty-three-layers) · [Requirements](#requirements)
 - **Core** — [Sensors](#-sensors) · [AI](#-ai) · [Memory](#-memory) · [Voice](#-voice) · [Events](#-events)
 - **Advanced** — [Electrophysiology](#-electrophysiology) · [**The plant on its own terms**](#-the-plant-on-its-own-terms) · [Vision](#-vision) · [Knowledge & reasoning](#-knowledge--reasoning) · [Semantic memory](#-semantic-memory)
 - **Ecosystem** — [Plugins](#-plugins) · [Firmware generation](#-firmware-generation) · [Integrations](#-integrations) · [**Colony**](#-colony--plants-talking-to-plants) · [**Inheritance**](#-inheritance-between-plants) · [Federated learning](#-federated-learning)
@@ -94,31 +94,60 @@ Then it goes further than a monitor:
 
 ## The twenty-three layers
 
+Ordered by how central each is to the thing working, not by when it was built. The first group is what a plant needs to exist at all; the last is what it can have.
+
+**The spine — nothing runs without these**
+
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
-| 🌡 **Sensors** | Seven pluggable drivers behind one `read()` contract | Your hardware, or none at all |
-| 🧬 **Signals** | Plant electrophysiology: action & variation potentials, circadian rhythm | The plant's own electrical voice |
+| 🌡 **Sensors** | Ten pluggable drivers behind one `read()` contract | Your hardware, or none at all |
+| 💾 **Memory** | Persistent readings, care log, species profile, and what the system worked out about itself | Advice builds on history, and the history survives a restart |
+| 🫀 **Internal states** | Five qualitative estimates of what the plant is *doing*, not what surrounds it | The system stops seeing only sensor numbers |
+| 🔁 **Co-adaptation** | One door every action goes through, and a record of when its own refusals were wrong | The system can be wrong about *itself* and find out |
+| 🦿 **Body** | Multirate fusion, reflexes, safety limits, personalization | Autonomy that cannot kill the plant — see [Symbiosis](#symbiosis) |
+
+**Reading the plant**
+
+| Layer | What it does | Why it matters |
+| --- | --- | --- |
+| 🧬 **Signals** | Electrophysiology: action and variation potentials, circadian rhythm | The plant's own electrical voice |
 | 🪞 **Self-reference** | Electrome fingerprint, internal clock, two-site coherence, VPD-aware blue | Judged against itself, not a population average |
-| 🧬 **Inheritance** | Directed transfer of validated priors between individuals | A new plant starts with what the last one learned |
-| 🗨 **Colony** | Conversation between plants, with 73 skills as the fast path | They talk to each other, and only about what they measure |
-| 🔁 **Self-correction** | Prediction error, identity drift, decaying priors, response hysteresis | The system finds out when *it* is the thing that is wrong |
-| 🔎 **Experience** | A ledger of what actually resolved each problem, against the base rate of doing nothing | It reuses what worked, without inventing what did not |
-| 🩻 **Diagnosis** | 29 checks over everything wired up, each ending in something to do | Know it works before walking away |
+| 🔬 **Spectral** | 🔵🟢🔴 LED as a probe, not illumination | The plant is *interrogated*, not just listened to |
+| 👁 **Vision** | Classical phenotyping, ONNX models, PlantCV bridge, thermal canopy | See wilting hours before you notice it |
+
+**Looking after it**
+
+| Layer | What it does | Why it matters |
+| --- | --- | --- |
+| 💧 **Watering** | Volume from the pot, fraction from the archetype, duration from a measured pump | A dose it can defend, and a check that the water arrived |
+| 🪴 **The pot** | Whether the container is running out, and moving to a bigger one | The pot is part of the body, and it stops fitting |
+| 🔎 **Experience** | A ledger of what resolved each problem, against the base rate of doing nothing | It reuses what worked, without inventing what did not |
+| 🔁 **Self-correction** | Prediction error, identity drift, decaying priors, response hysteresis | It finds out when *it* is the thing that is wrong |
+
+**Knowing whether it works**
+
+| Layer | What it does | Why it matters |
+| --- | --- | --- |
+| 🩻 **Diagnosis** | 33 checks over everything wired up, each ending in something to do | Know it works before walking away |
 | 🩺 **Self-check** | Weekly and monthly reviews, plus a technical inspection of the instrument | It watches its own trajectory, and its own sensors |
-| 👁 **Vision** | Classical phenotyping, ONNX models, PlantCV bridge | See wilting hours before you notice it |
-| 💾 **Memory** | Persistent readings, care log, species profile | Advice builds on history, not a snapshot |
+| 🖥 **Dashboard** | The plant in a browser: vitals, activity, and what has no sensor | All of the above, visible without writing code |
+
+**Talking, and to whom**
+
+| Layer | What it does | Why it matters |
+| --- | --- | --- |
 | 🧠 **Knowledge** | Ontology, forward-chaining reasoner, semantic recall | Conclusions you can audit, not just trust |
 | 🤖 **AI** | Seven providers, structured output, offline fallback | Your model, your keys, your privacy |
 | 🗣 **Voice** | Five first-person personas, emoji scales, ten languages | It talks to you, it doesn't report at you |
-| 🦿 **Body** | Multirate fusion, reflexes, safety limits, personalization | Autonomy that cannot kill the plant — see [Symbiosis](#symbiosis) |
-| 🔬 **Spectral** | 🔵🟢🔴 LED as a probe, not illumination | The plant is *interrogated*, not just listened to |
-| 🫀 **Internal states** | Five qualitative estimates of what the plant is *doing*, not what surrounds it | The system stops seeing only sensor numbers |
-| 🚜 **Navigation** | Constraints a robot stack cannot know, over a delegated ROS 2 planner | A pot is not a delivery robot |
-| 🖥 **Dashboard** | The plant in a browser: vitals, states, and what has no sensor | All of the above, visible without writing code |
+| 🗨 **Colony** | Conversation between plants, 73 skills, and delivery that survives a link failing | They talk to each other, and only about what they measure |
+| 🧬 **Inheritance** | Directed transfer of validated priors between individuals | A new plant starts with what the last one learned |
+
+**Once it can move**
+
+| Layer | What it does | Why it matters |
+| --- | --- | --- |
 | 📡 **Space** | WiFi presence and a lidar scan, without a camera and without a map | It knows if you are in the room, and how far the neighbour really is |
-| 🔁 **Co-adaptation** | One door for every action, and a record of when its own refusals were wrong | The system can be wrong about *itself* and find out |
-| 💧 **Watering** | Volume from the pot, fraction from the archetype, duration from a measured pump | A dose it can defend, and a check that the water arrived |
-| 🪴 **The pot** | Whether the container is running out, and moving to a bigger one | The pot is part of the body, and it stops fitting |
+| 🚜 **Navigation** | Constraints a robot stack cannot know, over a delegated ROS 2 planner | A pot is not a delivery robot |
 
 Every layer works alone. They compose.
 
