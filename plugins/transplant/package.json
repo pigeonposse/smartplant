@@ -1,7 +1,7 @@
 {
-	"name": "@smartplant/watering",
+	"name": "@smartplant/transplant",
 	"version": "3.0.5",
-	"description": "Predicts watering needs from soil moisture, trends and care history.",
+	"description": "Watches whether the pot is running out and guides the move to a bigger one.",
 	"main": "index.js",
 	"peerDependencies": {
 		"smartplant": "^3.0.5"
@@ -33,6 +33,6 @@
 		"smartplant",
 		"smartplant-plugin",
 		"AI",
-		"watering"
+		"transplant"
 	]
 }

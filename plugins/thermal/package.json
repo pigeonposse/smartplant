@@ -1,7 +1,7 @@
 {
-	"name": "@smartplant/watering",
+	"name": "@smartplant/thermal",
 	"version": "3.0.5",
-	"description": "Predicts watering needs from soil moisture, trends and care history.",
+	"description": "Reads the canopy with a thermal camera: where it is transpiring and where it has stopped.",
 	"main": "index.js",
 	"peerDependencies": {
 		"smartplant": "^3.0.5"
@@ -33,6 +33,6 @@
 		"smartplant",
 		"smartplant-plugin",
 		"AI",
-		"watering"
+		"thermal"
 	]
 }

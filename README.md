@@ -8,16 +8,17 @@
 ![Node](https://img.shields.io/badge/node-18%2B-5FA04E.svg)
 ![Runtime dependencies](https://img.shields.io/badge/runtime%20deps-0-brightgreen.svg)
 
-![Tests](https://img.shields.io/badge/tests-1096%20passing-brightgreen.svg)
-![Mock](https://img.shields.io/badge/mock-257%20checks%20passing-brightgreen.svg)
-![Wired](https://img.shields.io/badge/fully%20wired-73%20checks%20passing-brightgreen.svg)
-![Lint](https://img.shields.io/badge/lint-0%20warnings-brightgreen.svg)
-![Diagnosis](https://img.shields.io/badge/self%20diagnosis-33%20areas-2b6d94.svg)
+![Tests](https://img.shields.io/badge/tests-1122%20passing-brightgreen.svg)
+![Plugin tests](https://img.shields.io/badge/plugin%20tests-60%20passing-brightgreen.svg)
+![Mock](https://img.shields.io/badge/mock-313%20checks%20passing-brightgreen.svg)
+![Wired](https://img.shields.io/badge/fully%20wired-76%20checks%20passing-brightgreen.svg)
+![Lint](https://img.shields.io/badge/lint-0%20errors-brightgreen.svg)
+![Diagnosis](https://img.shields.io/badge/self%20diagnosis-40%20areas-2b6d94.svg)
 
 ![Sensors](https://img.shields.io/badge/sensor%20drivers-10-2b6d94.svg)
 ![Devices](https://img.shields.io/badge/device%20profiles-37-2b6d94.svg)
 ![Metrics](https://img.shields.io/badge/metrics-24-2b6d94.svg)
-![Plugins](https://img.shields.io/badge/plugins-13-2b6d94.svg)
+![Plugins](https://img.shields.io/badge/plugins-18-2b6d94.svg)
 ![Examples](https://img.shields.io/badge/examples-13%20runnable-2b6d94.svg)
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-delegated%20to%20Nav2-22314E.svg)
@@ -54,6 +55,7 @@ const plant = await createPlant( {
   sensor  : 'mock',                  // no hardware needed
   ai      : { provider : 'ollama' }, // or gemini / openai / claude / grok / mock
   memory  : { path : './ivy.json' },
+  units   : 'metric',                // or 'imperial' — see below
 } )
 
 await plant.read()
@@ -96,7 +98,7 @@ Then it goes further than a monitor:
 
 Ordered by how central each is to the thing working, not by when it was built. The first group is what a plant needs to exist at all; the last is what it can have.
 
-**The spine — nothing runs without these**
+### **The spine — nothing runs without these**
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -106,7 +108,31 @@ Ordered by how central each is to the thing working, not by when it was built. T
 | 🔁 **Co-adaptation** | One door every action goes through, and a record of when its own refusals were wrong | The system can be wrong about *itself* and find out |
 | 🦿 **Body** | Multirate fusion, reflexes, safety limits, personalization | Autonomy that cannot kill the plant — see [Symbiosis](#symbiosis) |
 
-**Reading the plant**
+#### Celsius or Fahrenheit
+
+`units: 'imperial'` prints Fahrenheit everywhere a person reads a number — the status line, the dashboard cards, the comfortable bands. Metric is the default and it is **not** guessed from your locale: a Canadian laptop set to `en-US` would flip every temperature on the screen, and the only symptom would be numbers that still look like plausible temperatures.
+
+It is a display setting and nothing below the display knows about it. Every threshold, every archetype band, the Tetens equation behind VPD and the thermal stress index are in Celsius and stay there; the unit is applied at the last possible moment. A number that changes unit as it travels between layers eventually arrives somewhere still carrying the wrong one, and that failure is silent — **70 is a comfortable room in Fahrenheit and lethal in Celsius**, and both pass every range check in the library.
+
+Which is why a probe declares its own unit separately, at the wire:
+
+```js
+sensor : { driver : 'serial', port : '/dev/ttyUSB0', unit : 'F' }
+```
+
+Plenty of probes sold in the US report Fahrenheit. That is a fact about the hardware, not a preference about the screen, and conflating the two is how somebody who picked Fahrenheit *because they think in it* ends up double-converting a probe that was already Celsius. Declared here, the reading is converted once on the way in and everything downstream may assume Celsius without checking.
+
+And a probe that lies about its unit is named rather than quietly fixed:
+
+```
+🔴  units   72°C is hotter than any room a plant survives in, and it is almost exactly
+            what a Fahrenheit probe declared as Celsius looks like — 72°F is 22.2°C,
+            which is an ordinary room.
+```
+
+Rescaling it at the display would hide the mislabelling for the life of the plant while every threshold underneath carried on reading the wrong number.
+
+### **Reading the plant**
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -115,7 +141,7 @@ Ordered by how central each is to the thing working, not by when it was built. T
 | 🔬 **Spectral** | 🔵🟢🔴 LED as a probe, not illumination | The plant is *interrogated*, not just listened to |
 | 👁 **Vision** | Classical phenotyping, ONNX models, PlantCV bridge, thermal canopy | See wilting hours before you notice it |
 
-**Looking after it**
+### **Looking after it**
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -124,15 +150,15 @@ Ordered by how central each is to the thing working, not by when it was built. T
 | 🔎 **Experience** | A ledger of what resolved each problem, against the base rate of doing nothing | It reuses what worked, without inventing what did not |
 | 🔁 **Self-correction** | Prediction error, identity drift, decaying priors, response hysteresis | It finds out when *it* is the thing that is wrong |
 
-**Knowing whether it works**
+### **Knowing whether it works**
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
-| 🩻 **Diagnosis** | 33 checks over everything wired up, each ending in something to do | Know it works before walking away |
+| 🩻 **Diagnosis** | 40 checks over everything wired up, each ending in something to do | Know it works before walking away |
 | 🩺 **Self-check** | Weekly and monthly reviews, plus a technical inspection of the instrument | It watches its own trajectory, and its own sensors |
 | 🖥 **Dashboard** | The plant in a browser: vitals, activity, and what has no sensor | All of the above, visible without writing code |
 
-**Talking, and to whom**
+### **Talking, and to whom**
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -142,7 +168,7 @@ Ordered by how central each is to the thing working, not by when it was built. T
 | 🗨 **Colony** | Conversation between plants, 73 skills, and delivery that survives a link failing | They talk to each other, and only about what they measure |
 | 🧬 **Inheritance** | Directed transfer of validated priors between individuals | A new plant starts with what the last one learned |
 
-**Once it can move**
+### **Once it can move**
 
 | Layer | What it does | Why it matters |
 | --- | --- | --- |
@@ -509,7 +535,7 @@ A dependency-free hashing embedder and a flat index, so a plant on a Raspberry P
 
 ## 🔌 Plugins
 
-Eleven official plugins, each installable on any plant:
+Eighteen official plugins, each installable on any plant:
 
 ```js
 import watering from '@smartplant/watering'
@@ -533,6 +559,11 @@ const { advice, daysUntilWater } = await plant.plugin( 'watering' ).predictWater
 | 🔬 `@smartplant/spectrum` | `diagnose()` | `probe()`, `treat()`, `doses()` — 🔵🟢🔴 interrogation with hard interlocks |
 | 🧬 `@smartplant/migration` | `bequeath()` | `receive()`, `wouldSuit()`, `outcome()` — inheritance between plants of one species |
 | 🗨 `@smartplant/colony` | `askPeer()` | `askAll()`, `report()`, `corroborate()` — a channel between plants a person can watch but not enter |
+| 🪴 `@smartplant/transplant` | `plan()` | `space()`, `settling()` — notices the pot filling up months before a person does, and never repots anything |
+| 🌡 `@smartplant/thermal` | `stress()` | `evenness()`, `map()` — the whole canopy at once, which one leaf clip cannot see |
+| 📡 `@smartplant/presence` | `uvbAllowed()` | `room()`, `explains()` — the UV-B interlock, and motion as a control on electrical events |
+| 🍂 `@smartplant/season` | `ranges()` | `now()`, `lastYear()` — bends care to the time of year, and fades as the plant learns its own |
+| 🔋 `@smartplant/energy` | `forecast()` | `plan()`, `canTravel()` — what runs off a panel and a battery, and what sleeps |
 
 Writing your own takes one function:
 
@@ -704,7 +735,9 @@ What to change
 
 Also available as `plant.systemDiagnosis()`. It exits non-zero when something is broken, so it works in a startup script or a cron job.
 
-**Twenty-nine areas**, covering every layer that can be misconfigured: sensors and the reading itself, electrode, memory, AI, spectral, vision, colony and whether anything it says can leave, archetype, power, inference, internal states, coupling, optical, security, navigation, presence, space, dashboard, learning, knowledge, safety limits, voice, plugins, co-adaptation, running experiments, a restored identity and integrations.
+**Forty areas**, covering every layer that can be misconfigured: sensors and the reading itself, electrode, memory, AI, spectral, vision, the thermal camera, colony and whether anything it says can leave, archetype, power, inference, internal states, coupling, optical, security, navigation, presence, space, dashboard, learning, knowledge, safety limits, voice, plugins, co-adaptation, running experiments, a restored identity, integrations, the season, the pot and how much water it implies, root space, a transplant still settling, the activity feed, night consolidation, the provenance index and the profiler.
+
+Nothing new is allowed to stay outside it. Every layer added in 3.0.5 has its own line, and the plugin check knows what each official plugin needs — a plugin waiting for a wire answers every call with a refusal, which is honest and also a very quiet way for somebody to conclude the library does not work, so it is named here rather than discovered one empty result at a time.
 
 Two rules decide whether a check like this is useful or just noise:
 

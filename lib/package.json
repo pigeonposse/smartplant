@@ -48,6 +48,7 @@
 		"./archetypes/rootspace": "./src/archetypes/rootspace.js",
 		"./archetypes/transplant": "./src/archetypes/transplant.js",
 		"./power": "./src/power/index.js",
+		"./units": "./src/units/index.js",
 		"./states": "./src/states/index.js",
 		"./states/gate": "./src/states/gate.js",
 		"./states/calibration": "./src/states/calibration.js",

@@ -1,7 +1,7 @@
 {
-	"name": "@smartplant/watering",
+	"name": "@smartplant/season",
 	"version": "3.0.5",
-	"description": "Predicts watering needs from soil moisture, trends and care history.",
+	"description": "Bends care to the time of year, in the right hemisphere.",
 	"main": "index.js",
 	"peerDependencies": {
 		"smartplant": "^3.0.5"
@@ -33,6 +33,6 @@
 		"smartplant",
 		"smartplant-plugin",
 		"AI",
-		"watering"
+		"season"
 	]
 }

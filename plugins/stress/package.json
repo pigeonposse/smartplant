@@ -7,7 +7,7 @@
 		"smartplant": "^3.0.5"
 	},
 	"devDependencies": {
-		"smartplant": "^3.0.4"
+		"smartplant": "^3.0.5"
 	},
 	"publishConfig": {
 		"access": "public",
