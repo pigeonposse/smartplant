@@ -67,6 +67,18 @@ jobs:
       # DEPLOY
       #########################################################################
 
+      # The account the org secrets point at has no `smartplant` project, so the
+      # deploy cannot find one to push to. First run creates it; later runs say
+      # it already exists, which is why this is allowed to fail.
+      - name: 🌥 Ensure the Pages project exists
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create ${{env.DOCS_ID}} --production-branch=main
+          packageManager: pnpm
+
       - name: 🌥 Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
