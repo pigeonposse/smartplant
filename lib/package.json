@@ -49,6 +49,9 @@
 		"./states/calibration": "./src/states/calibration.js",
 		"./states/trajectory": "./src/states/trajectory.js",
 		"./states/adaptation": "./src/states/adaptation.js",
+		"./states/consolidation": "./src/states/consolidation.js",
+		"./states/provenance": "./src/states/provenance.js",
+		"./states/profile": "./src/states/profile.js",
 		"./navigation": "./src/navigation/index.js",
 		"./spatial": "./src/spatial/index.js",
 		"./dashboard": "./src/dashboard/index.js"

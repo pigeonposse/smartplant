@@ -3,6 +3,10 @@
 
 [![HEADER](https://github.com/pigeonposse/smartplant/blob/main/docs/banner.png?raw=true)](https://github.com/pigeonposse)
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
+![ROS 2](https://img.shields.io/badge/ROS%202-Humble%2B-22314E.svg)
+![Mock](https://img.shields.io/badge/mock-342%20checks%20passing-brightgreen.svg)
+
 **SmartPlant is a bridge between AI and plants.**
 
 Not a plant monitor.  
