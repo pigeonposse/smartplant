@@ -1,0 +1,87 @@
+###############################################################################
+# RELEASE DOCS
+#
+# Builds the documentation site from the Markdown in `docs/` and deploys it to
+# Cloudflare Pages. Run by hand rather than on push: the site is a release of
+# its own, and a typo fixed in a comment should not redeploy it.
+#
+# Needs two repository secrets: CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
+###############################################################################
+
+name: 🚀📚 Release Documentation
+
+on:
+  workflow_dispatch:
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+env:
+    GITHUB_TOKEN: ${{ github.token }}
+    DOCS_ID: 'smartplant'
+    DOCS_DIR: 'docs-site/build/docs'
+    BUILD_CMD: 'pnpm -F @smartplant/docs build'
+
+###############################################################################
+# JOBS
+###############################################################################
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      #########################################################################
+      # INIT
+      #########################################################################
+
+      - name: ⬇️🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.12.1
+      - name: ⬇️🛎 Checkout
+        uses: actions/checkout@v4
+      - name: ⬇️🥡 Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: ⬇️🟢 Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: ⬇️📦 Install dependencies
+        run: |
+           export npm_config_build_from_source=false
+           pnpm install --no-frozen-lockfile --ignore-scripts
+           pnpm i -g wrangler
+
+      #########################################################################
+      # BUILD
+      #########################################################################
+
+      - name: 🏗 Build docs
+        run: ${{env.BUILD_CMD}}
+
+      #########################################################################
+      # DEPLOY
+      #########################################################################
+
+      # `pages deploy` fails with "Project not found" when the project does not
+      # exist yet, and cannot create one in a non-interactive context. So the
+      # first run creates it and every run after that reports "already exists",
+      # which is why this step is allowed to fail.
+      # https://github.com/cloudflare/wrangler2/issues/2405
+      - name: 🌥 Ensure the Pages project exists
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create ${{env.DOCS_ID}} --production-branch=main
+          packageManager: pnpm
+
+      - name: 🌥 Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{env.DOCS_DIR}} --project-name=${{env.DOCS_ID}}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          packageManager: pnpm

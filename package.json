@@ -34,6 +34,8 @@
 		"start": "pnpm -F smartplant start",
 		"lint": "oxlint",
 		"build:bins": "rsbuild build -c .dovenv/build-lib.mjs && node .dovenv/build-bin.mjs",
+		"docs": "pnpm -F @smartplant/docs dev",
+		"docs:build": "pnpm -F @smartplant/docs build",
 		"push": "dovenv git push",
 		"prepare": "dovenv git husky --silent",
 		"test": "pnpm -r test",

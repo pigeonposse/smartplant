@@ -4,10 +4,17 @@
 web:
   smartplant:
     name: Smartplant
-    desc: A library for managing plant care with alerts and multi-language support.
-    homepage: https://github.com/pigeonposse/smartplant
+    desc: >-
+      A bridge between AI and plants. Reads a plant's own electrical signals, asks
+      it questions with light, and refuses to guess when nothing is measuring.
+    homepage: https://smartplant.pigeonposse.com/
+    library: https://www.npmjs.com/package/smartplant
+    repository: https://github.com/pigeonposse/smartplant
     type:
       - library
+      - js-library
+      - iot
+      - ai
     license:
       name: MIT
       url: https://github.com/pigeonposse/smartplant/blob/main/LICENSE

@@ -1,0 +1,21 @@
+{
+	"name": "@smartplant/docs",
+	"version": "3.0.5",
+	"private": true,
+	"description": "Documentation site for smartplant",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pigeonposse/smartplant",
+		"directory": "docs-site"
+	},
+	"type": "module",
+	"scripts": {
+		"build": "dovenv docs build",
+		"dev": "dovenv docs dev",
+		"preview": "dovenv docs preview"
+	},
+	"devDependencies": {
+		"@dovenv/core": "~1.6.1",
+		"@dovenv/theme-pigeonposse": "~1.6.2"
+	}
+}

@@ -26,6 +26,9 @@ dist-ssr
 **/vendor
 /vendor
 packages/**/build
+docs-site/build
+docs/.vitepress/cache
+docs/.vitepress/dist
 *.local
 
 # misc
