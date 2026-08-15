@@ -63,20 +63,6 @@ jobs:
       # DEPLOY
       #########################################################################
 
-      # `pages deploy` fails with "Project not found" when the project does not
-      # exist yet, and cannot create one in a non-interactive context. So the
-      # first run creates it and every run after that reports "already exists",
-      # which is why this step is allowed to fail.
-      # https://github.com/cloudflare/wrangler2/issues/2405
-      - name: 🌥 Ensure the Pages project exists
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create ${{env.DOCS_ID}} --production-branch=main
-          packageManager: pnpm
-
       - name: 🌥 Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
